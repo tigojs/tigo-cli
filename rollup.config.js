@@ -1,5 +1,9 @@
 import { babel } from '@rollup/plugin-babel';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
+import fs from 'fs';
+
+const pkg = JSON.parse(fs.readFileSync('./package.json'));
+const external = Object.keys(pkg.dependencies || {});
 
 const extensions = ['.js', '.ts'];
 
@@ -10,7 +14,7 @@ export default {
     format: 'cjs',
     banner: '#!/usr/bin/env node',
   },
-  external: ['commander', 'chalk', 'log4js', 'npm-api', 'superagent', 'cli-progress', 'tar-fs', 'gunzip-maybe', 'ssri', 'shelljs', 'inquirer'],
+  external,
   plugins: [
     nodeResolve({
       extensions,

@@ -28,8 +28,8 @@ if (!app.store.envCheckPassed) {
 }
 
 // load modules
-modules.forEach((mount: (app: Application, program: commander.Command) => void) => {
-  mount(app, program);
+modules.forEach(async (mount: (app: Application, program: commander.Command) => unknown): Promise<void> => {
+  await mount(app, program);
 });
 
 program.parse();

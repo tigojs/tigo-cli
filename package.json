@@ -6,6 +6,7 @@
   "bin": {
     "tigo": "./bin/cli.js"
   },
+  "files": ["bin"],
   "author": "BackRunner",
   "license": "MIT",
   "scripts": {

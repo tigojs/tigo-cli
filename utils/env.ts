@@ -1,4 +1,7 @@
 import shelljs from 'shelljs';
+import path from 'path';
+import fs from 'fs';
+import { RuntimeConfig, RuntimeConfigStatus } from '../interface/rc';
 
 interface EnvCheckOptions {
   minNodeVersion: number;
@@ -42,4 +45,34 @@ export const checkEnvironment = ({ minNodeVersion }: EnvCheckOptions): void => {
   if (nodeVer < minNodeVersion) {
     throw new Error(`Node.js is outdated, at least v${minNodeVersion} is required, please do upgrade first.`);
   }
+};
+
+export const getRuntimeConfigStatus = (runtimeDir: string): RuntimeConfigStatus => {
+  const jsonPath = path.resolve(runtimeDir, './.tigorc');
+  const jsPath = `${jsonPath}.js`;
+  const jsonExists = fs.existsSync(jsonPath);
+  const jsExists = fs.existsSync(jsPath);
+  return {
+    exists: jsonExists || jsExists,
+    json: {
+      path: jsonPath,
+      exists: jsonExists,
+    },
+    js: {
+      path: jsPath,
+      exists: jsExists,
+    },
+  };
+};
+
+export const getRuntimeConfig = async (runtimeDir: string): Promise<RuntimeConfig | null> => {
+  const status = getRuntimeConfigStatus(runtimeDir);
+  if (status.json.exists) {
+    const rc = import(status.json.path);
+    return rc;
+  } else if (status.js.exists) {
+    const rc = import(status.js.path);
+    return rc;
+  }
+  return null;
 };

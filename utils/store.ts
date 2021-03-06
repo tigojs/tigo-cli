@@ -2,11 +2,13 @@ import path from 'path';
 import fs from 'fs';
 import { CliStore } from './../interface/store';
 
-const storePath = '~/.tigo/store.json';
-const storeDir = path.dirname(storePath);
-if (!fs.existsSync(storeDir)) {
-  fs.mkdirSync(storeDir, { recursive: true });
-}
+const userDir = process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + '/Library/Preferences' : process.env.HOME + "/.local/share");
+
+const storePath = path.resolve(userDir, './.tigo/store.json');
+  const storeDir = path.dirname(storePath);
+  if (!fs.existsSync(storeDir)) {
+    fs.mkdirSync(storeDir, { recursive: true });
+  }
 
 export const getStore = (): CliStore => {
   if (!fs.existsSync(storePath)) {
