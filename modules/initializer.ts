@@ -120,7 +120,7 @@ const downloadServerPack = async (app: Application): Promise<void> => {
   bar.stop();
   // check sum
   const downloadedShaSum = getFileShaSum(tempSavePath);
-  if (!downloadedShaSum !== shasum) {
+  if (downloadedShaSum !== shasum) {
     app.logger.error('Package hash mismatch.');
     process.exit(-10500);
   }
