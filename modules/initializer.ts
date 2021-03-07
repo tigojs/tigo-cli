@@ -111,7 +111,7 @@ const downloadServerPack = async (app: Application): Promise<void> => {
     bar.update(e.percent || 0);
   });
   try {
-    writeFileFromReq(req, tempSavePath);
+    await writeFileFromReq(req, tempSavePath);
   } catch (err) {
     app.logger.error('Saving package failed.', err.message || err);
     process.exit(-10500);
@@ -119,7 +119,7 @@ const downloadServerPack = async (app: Application): Promise<void> => {
   bar.update(bar.getTotal());
   bar.stop();
   // check sum
-  const downloadedShaSum = getFileShaSum(tempSavePath);
+  const downloadedShaSum = await getFileShaSum(tempSavePath);
   if (downloadedShaSum !== shasum) {
     app.logger.error('Package hash mismatch.');
     process.exit(-10500);
