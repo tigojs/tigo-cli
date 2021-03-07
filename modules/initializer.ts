@@ -12,8 +12,46 @@ import { Application } from '../interface/application';
 import { writeFileFromReq } from '../utils/network';
 import { getFileShaSum } from '../utils/hash';
 import { extractTgz } from '../utils/pack';
+import { getRuntimeConfigStatus } from '../utils/env';
+import { RuntimeConfig } from '../interface/rc';
 
 const npm = new NpmApi();
+
+const initializeServerConfig = async (app: Application): Promise<void> => {
+  const status = getRuntimeConfigStatus(app.workDir);
+  if (status.exists) {
+    const answer = await inquirer.prompt([{ type: 'confirm', message: 'Detected a tigo runtime config, overwrite it?', default: false, name: 'overwrite' }]);
+    if (!answer.overwrite) {
+      return;
+    }
+  }
+  const answers = await inquirer.prompt([
+    {
+      type: 'number',
+      name: 'port',
+      message: 'Which port do you want the server to listen on?',
+      default: 8000,
+      validate: (port) => {
+        if (port <= 0 || port > 65535) {
+          return 'Port is invalid.';
+        }
+        return true;
+      }
+    },
+  ]);
+  const rc: RuntimeConfig = {
+    server: {
+      port: answers.port,
+    },
+  };
+  // write config
+  if (status.js.exists) {
+    // if js rc file exists, remove it.
+    fs.unlinkSync(status.js.path);
+  }
+  fs.writeFileSync(status.json.path, JSON.stringify(rc, null, '  '), { encoding: 'utf-8' });
+  app.logger.info('Runtime config initialized.');
+};
 
 const extractServerPack = async (app: Application, packPath: string): Promise<void> => {
   app.logger.info('Starting to extract the package...');
@@ -36,6 +74,7 @@ const extractServerPack = async (app: Application, packPath: string): Promise<vo
   } catch {
     app.logger.error('Fail to install the dependecies of tigo server.');
   }
+  await initializeServerConfig(app);
   app.logger.info('All things done, your tigo server is ready.');
 };
 
@@ -103,6 +142,8 @@ const mount = (app: Application, program: commander.Command): void => {
       }
       if (type === 'server') {
         await downloadServerPack(app);
+      } else if (type === 'server-config') {
+        await initializeServerConfig(app);
       } else {
         app.logger.error('You should specific a type to initialize.');
         program.help();
