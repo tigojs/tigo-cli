@@ -12,7 +12,7 @@ import { Application } from '../interface/application';
 import { writeFileFromReq } from '../utils/network';
 import { getFileShaSum } from '../utils/hash';
 import { extractTgz } from '../utils/pack';
-import { getRuntimeConfigStatus } from '../utils/env';
+import { getRuntimeConfigStatus, writeRuntimeConfig } from '../utils/env';
 import { RuntimeConfig } from '../interface/rc';
 
 const npm = new NpmApi();
@@ -49,7 +49,7 @@ const initializeServerConfig = async (app: Application): Promise<void> => {
     // if js rc file exists, remove it.
     fs.unlinkSync(status.js.path);
   }
-  fs.writeFileSync(status.json.path, JSON.stringify(rc, null, '  '), { encoding: 'utf-8' });
+  writeRuntimeConfig(status, rc);
   app.logger.info('Runtime config initialized.');
 };
 

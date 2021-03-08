@@ -65,14 +65,18 @@ export const getRuntimeConfigStatus = (runtimeDir: string): RuntimeConfigStatus 
   };
 };
 
-export const getRuntimeConfig = async (runtimeDir: string): Promise<RuntimeConfig | null> => {
-  const status = getRuntimeConfigStatus(runtimeDir);
-  if (status.json.exists) {
-    const rc = import(status.json.path);
+export const getRuntimeConfig = async (runtimeDir: string, status?: RuntimeConfigStatus): Promise<RuntimeConfig | null> => {
+  const rcStatus = status || getRuntimeConfigStatus(runtimeDir);
+  if (rcStatus.json.exists) {
+    const rc = JSON.parse(fs.readFileSync(rcStatus.json.path, { encoding: 'utf-8' }));
     return rc;
-  } else if (status.js.exists) {
-    const rc = import(status.js.path);
+  } else if (rcStatus.js.exists) {
+    const rc = import(rcStatus.js.path);
     return rc;
   }
   return null;
+};
+
+export const writeRuntimeConfig = (status: RuntimeConfigStatus, config: RuntimeConfig): void => {
+  fs.writeFileSync(status.json.path, JSON.stringify(config, null, '  '), { encoding: 'utf-8' });
 };
