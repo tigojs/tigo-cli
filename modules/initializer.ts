@@ -154,24 +154,30 @@ const initializeLambdaEnv = async (app: Application) => {
   app.logger.info('Lambda dev environment is ready, now you can develope your own function.');
 };
 
+const checkWorkDir = async (workDir: string): Promise<boolean> => {
+  const dir = fs.readdirSync(workDir);
+  if (dir?.length > 0) {
+    const answers = await inquirer.prompt([{ type: 'confirm', name: 'continue', message: 'Current folder is not empty, continue initializing?', default: false }]);
+    if (!answers.continue) {
+      return false;
+    }
+  }
+  return true;
+};
+
 const mount = (app: Application, program: commander.Command): void => {
   program
     .command('init <template>')
     .description('initialize project by using tigo templates (server, lambda)')
     .action(async (type: string) => {
       // check work dir
-      const dir = fs.readdirSync(app.workDir);
-      if (dir?.length > 0) {
-        const answers = await inquirer.prompt([{ type: 'confirm', name: 'notEmpty', message: 'Current folder is not empty, continue initializing?', default: false }]);
-        if (!answers.notEmpty) {
-          return;
-        }
-      }
       if (type === 'server') {
+        await checkWorkDir(app.workDir);
         await downloadServerPack(app);
       } else if (type === 'server-config') {
         await initializeServerConfig(app);
       } else if (type === 'lambda') {
+        await checkWorkDir(app.workDir);
         await initializeLambdaEnv(app);
       } else {
         app.logger.error('You should specific a type to initialize.');
