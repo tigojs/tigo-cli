@@ -12,7 +12,7 @@ import { Application } from '../interface/application';
 import { writeFileFromReq } from '../utils/network';
 import { getFileShaSum } from '../utils/hash';
 import { extractTgz } from '../utils/pack';
-import { getRuntimeConfigStatus, writeRuntimeConfig } from '../utils/env';
+import { checkGit, getRuntimeConfigStatus, writeRuntimeConfig } from '../utils/env';
 import { RuntimeConfig } from '../interface/rc';
 
 const npm = new NpmApi();
@@ -36,7 +36,7 @@ const initializeServerConfig = async (app: Application): Promise<void> => {
           return 'Port is invalid.';
         }
         return true;
-      }
+      },
     },
   ]);
   const rc: RuntimeConfig = {
@@ -57,7 +57,7 @@ const extractServerPack = async (app: Application, packPath: string): Promise<vo
   app.logger.info('Starting to extract the package...');
   await extractTgz(packPath, app.workDir);
   // extracted things are under a dir named package
-  const { code: mvCode } = shelljs.mv('./package/*', './');
+  const { code: mvCode } = shelljs.mv('./package/*', './package/.*', './');
   if (mvCode !== 0) {
     app.logger.error('Move server files failed.');
     process.exit(-10500);
@@ -127,6 +127,33 @@ const downloadServerPack = async (app: Application): Promise<void> => {
   extractServerPack(app, tempSavePath);
 };
 
+const initializeLambdaEnv = async (app: Application) => {
+  const gitStatus = checkGit();
+  if (!gitStatus.installed) {
+    app.logger.error('Git is not installed, please install git first.');
+    process.exit(-10400);
+  }
+  // clone repo
+  app.logger.info('Downloading repository...');
+  child_process.execSync('git clone -b main https://github.com/tigojs/tigo-lambda-template.git --depth 1', { stdio: 'inherit' });
+  app.logger.info('Repository downloaded.');
+  const { code: mvCode } = shelljs.mv('./tigo-lambda-template/*', './tigo-lambda-template/.*', './');
+  if (mvCode !== 0) {
+    app.logger.error('Cannot move repository files.');
+    process.exit(-10500);
+  }
+  const { code: rmCode } = shelljs.rm('-rf', './tigo-lambda-template');
+  if (rmCode !== 0) {
+    app.logger.error('Remove temp folder failed.');
+    process.exit(-10500);
+  }
+  // install dependencies
+  app.logger.info('Start installing dependencies...');
+  child_process.execSync('npm install', { stdio: 'inherit' });
+  app.logger.info('Dependencies installed.');
+  app.logger.info('Lambda dev environment is ready, now you can develope your own function.');
+};
+
 const mount = (app: Application, program: commander.Command): void => {
   program
     .command('init <template>')
@@ -144,6 +171,8 @@ const mount = (app: Application, program: commander.Command): void => {
         await downloadServerPack(app);
       } else if (type === 'server-config') {
         await initializeServerConfig(app);
+      } else if (type === 'lambda') {
+        await initializeLambdaEnv(app);
       } else {
         app.logger.error('You should specific a type to initialize.');
         program.help();

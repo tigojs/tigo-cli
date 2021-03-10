@@ -14,6 +14,11 @@ interface NodeEnvironment {
   npmVersion: string;
 }
 
+interface GitStatus {
+  installed: boolean;
+  version: string;
+}
+
 const getEnvironment = (): NodeEnvironment => {
   let nodeInstalled = false;
   let npmInstalled = false;
@@ -79,4 +84,17 @@ export const getRuntimeConfig = async (runtimeDir: string, status?: RuntimeConfi
 
 export const writeRuntimeConfig = (status: RuntimeConfigStatus, config: RuntimeConfig): void => {
   fs.writeFileSync(status.json.path, JSON.stringify(config, null, '  '), { encoding: 'utf-8' });
+};
+
+export const checkGit = (): GitStatus => {
+  const gitStatus = shelljs.exec('git --version', { silent: true });
+  let gitInstalled = false;
+  const gitVersion = gitStatus.stdout;
+  if (gitStatus.code === 0) {
+    gitInstalled = true;
+  }
+  return {
+    installed: gitInstalled,
+    version: gitVersion,
+  };
 };
