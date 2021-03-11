@@ -14,6 +14,7 @@ import { getFileShaSum } from '../utils/hash';
 import { extractTgz } from '../utils/pack';
 import { checkGit, getRuntimeConfigStatus, writeRuntimeConfig } from '../utils/env';
 import { RuntimeConfig } from '../interface/rc';
+import { getConfig } from '../utils/config';
 
 const npm = new NpmApi();
 
@@ -151,6 +152,32 @@ const initializeLambdaEnv = async (app: Application) => {
   app.logger.info('Start installing dependencies...');
   child_process.execSync('npm install', { stdio: 'inherit' });
   app.logger.info('Dependencies installed.');
+  // init dev env config
+  const config = getConfig();
+  if (config && config.api_access_key && config.api_secret_key) {
+    const { api_access_key: ak, api_secret_key: sk } = config;
+    const devConfigPath = path.resolve(app.workDir, './.tigodev');
+    let devConfig;
+    if (fs.existsSync(devConfigPath)) {
+      try {
+        devConfig = JSON.parse(fs.readFileSync(devConfigPath, { encoding: 'utf-8' }));
+      } catch {
+        app.logger.error('Cannot read dev environment configuration.');
+      }
+    }
+    devConfig = devConfig || {};
+    devConfig.upload = devConfig.upload || {};
+    Object.assign(devConfig.upload, {
+      accessKey: ak,
+      secretKey: sk,
+    });
+    try {
+      fs.writeFileSync(devConfigPath, JSON.stringify(devConfig, null, '  '), { encoding: 'utf-8' });
+      app.logger.info('Dev environment configuration initialized.');
+    } catch {
+      app.logger.error('Cannot write dev environment configuration.');
+    }
+  }
   app.logger.info('Lambda dev environment is ready, now you can develope your own function.');
 };
 
