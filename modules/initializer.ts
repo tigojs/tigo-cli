@@ -156,7 +156,7 @@ const initializeLambdaEnv = async (app: Application) => {
   const config = getConfig();
   if (config && config.api_access_key && config.api_secret_key) {
     const { api_access_key: ak, api_secret_key: sk } = config;
-    const devConfigPath = path.resolve(app.workDir, './.tigodev');
+    const devConfigPath = path.resolve(app.workDir, './.tigodev.json');
     let devConfig;
     if (fs.existsSync(devConfigPath)) {
       try {

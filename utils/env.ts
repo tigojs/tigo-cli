@@ -53,8 +53,9 @@ export const checkEnvironment = ({ minNodeVersion }: EnvCheckOptions): void => {
 };
 
 export const getRuntimeConfigStatus = (runtimeDir: string): RuntimeConfigStatus => {
-  const jsonPath = path.resolve(runtimeDir, './.tigorc');
-  const jsPath = `${jsonPath}.js`;
+  const rcPath = path.resolve(runtimeDir, './.tigorc');
+  const jsonPath = path.resolve(`${rcPath}.json`);
+  const jsPath = `${rcPath}.js`;
   const jsonExists = fs.existsSync(jsonPath);
   const jsExists = fs.existsSync(jsPath);
   return {
