@@ -1,11 +1,40 @@
-import commander from "commander";
+import commander from 'commander';
 import NpmApi from 'npm-api';
 import child_process from 'child_process';
+import path from 'path';
 import fs from 'fs';
-import { Application } from "../interface/application";
-import { getRuntimeConfig, getRuntimeConfigStatus, writeRuntimeConfig } from "../utils/env";
+import { Application } from '../interface/application';
+import { getRuntimeConfig, getRuntimeConfigStatus, writeRuntimeConfig } from '../utils/env';
+import inquirer from 'inquirer';
+import shelljs from 'shelljs';
+import { Logger } from 'log4js';
+import { RuntimeConfig, RuntimeConfigStatus } from '../interface/rc';
 
 const npm = new NpmApi();
+
+interface postInstallThis {
+  inquirer: typeof inquirer;
+  npm: typeof npm;
+  workDir: string;
+  shell: typeof shelljs;
+  logger: Logger;
+  rc: {
+    status: RuntimeConfigStatus,
+    content: RuntimeConfig,
+  }
+}
+
+const buildPostInstallThisArg = (app: Application, rcStatus: RuntimeConfigStatus, rc: RuntimeConfig): postInstallThis => ({
+  inquirer,
+  workDir: app.workDir,
+  npm,
+  shell: shelljs,
+  logger: app.logger,
+  rc: {
+    status: rcStatus,
+    content: rc,
+  },
+});
 
 const mount = async (app: Application, program: commander.Command): Promise<void> => {
   program
@@ -68,7 +97,16 @@ const mount = async (app: Application, program: commander.Command): Promise<void
         }
       }
       writeRuntimeConfig(rcStatus, rc);
-      app.logger.info('Module has added to your tigo server, please set module config in .tigorc if necessary.')
+      if (pkg.tigo && pkg.tigo.postInstall) {
+        // run post install script
+        const postInstallScriptPath = path.resolve(app.workDir, `./node_modules/${pkg.name}/${pkg.tigo.postInstall}`);
+        let postInstall;
+        if (fs.existsSync(postInstallScriptPath)) {
+          postInstall = await import(postInstallScriptPath);
+        }
+        await postInstall.bind(buildPostInstallThisArg(app, rcStatus, rc))();
+      }
+      app.logger.info('Module has added to your tigo server.');
     });
 };
 
