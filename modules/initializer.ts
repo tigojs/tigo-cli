@@ -58,7 +58,7 @@ const extractServerPack = async (app: Application, packPath: string): Promise<vo
   app.logger.info('Starting to extract the package...');
   await extractTgz(packPath, app.workDir);
   // extracted things are under a dir named package
-  const { code: mvCode } = shelljs.mv('./package/*', './package/.*', './');
+  const { code: mvCode } = shelljs.mv('./package/*', './');
   if (mvCode !== 0) {
     app.logger.error('Move server files failed.');
     process.exit(-10500);
