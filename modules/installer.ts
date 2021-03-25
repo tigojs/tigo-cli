@@ -21,6 +21,7 @@ interface postInstallThis {
   rc: {
     status: RuntimeConfigStatus,
     content: RuntimeConfig,
+    write: (status: RuntimeConfigStatus, rc: RuntimeConfig) => void,
   }
 }
 
@@ -33,6 +34,7 @@ const buildPostInstallThisArg = (app: Application, rcStatus: RuntimeConfigStatus
   rc: {
     status: rcStatus,
     content: rc,
+    write: writeRuntimeConfig,
   },
 });
 
@@ -88,14 +90,6 @@ const mount = async (app: Application, program: commander.Command): Promise<void
         };
       }
       // write config
-      if (rcStatus.js.exists) {
-        try {
-          fs.unlinkSync(rcStatus.js.path);
-        } catch {
-          app.logger.error('Failed to convert js runtime config to json format.');
-          process.exit(-10500);
-        }
-      }
       writeRuntimeConfig(rcStatus, rc);
       if (pkg.tigo && pkg.tigo.postInstall) {
         // run post install script

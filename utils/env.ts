@@ -84,6 +84,13 @@ export const getRuntimeConfig = async (runtimeDir: string, status?: RuntimeConfi
 };
 
 export const writeRuntimeConfig = (status: RuntimeConfigStatus, config: RuntimeConfig): void => {
+  if (status.js.exists) {
+    try {
+      fs.unlinkSync(status.js.path);
+    } catch {
+      throw new Error('Failed to convert js runtime config to json format.');
+    }
+  }
   fs.writeFileSync(status.json.path, JSON.stringify(config, null, '  '), { encoding: 'utf-8' });
 };
 

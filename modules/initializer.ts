@@ -46,10 +46,6 @@ const initializeServerConfig = async (app: Application): Promise<void> => {
     },
   };
   // write config
-  if (status.js.exists) {
-    // if js rc file exists, remove it.
-    fs.unlinkSync(status.js.path);
-  }
   writeRuntimeConfig(status, rc);
   app.logger.info('Runtime config initialized.');
 };
