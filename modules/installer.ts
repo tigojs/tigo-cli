@@ -19,10 +19,10 @@ interface postInstallThis {
   shell: typeof shelljs;
   logger: Logger;
   rc: {
-    status: RuntimeConfigStatus,
-    content: RuntimeConfig,
-    write: (status: RuntimeConfigStatus, rc: RuntimeConfig) => void,
-  }
+    status: RuntimeConfigStatus;
+    content: RuntimeConfig;
+    write: (status: RuntimeConfigStatus, rc: RuntimeConfig) => void;
+  };
 }
 
 const buildPostInstallThisArg = (app: Application, rcStatus: RuntimeConfigStatus, rc: RuntimeConfig): postInstallThis => ({
@@ -52,15 +52,26 @@ const mount = async (app: Application, program: commander.Command): Promise<void
       if (!rc.plugins) {
         rc.plugins = {};
       }
-      Object.keys(rc.plugins).forEach((key) => {
+      const { plugins } = rc;
+      const pluginNames = Object.keys(plugins);
+      for (const key of pluginNames) {
         const node = rc.plugins ? rc.plugins[key] : null;
         if (!node) {
           return;
         }
         if (node.package.replace('@tigojs/', '') === name) {
           app.logger.info('This module has already existed.');
+          const answers = await inquirer.prompt({
+            type: 'confirm',
+            name: 'still',
+            message: 'Do you still want to install it even the module already existed?',
+            default: false,
+          });
+          if (!answers.still) {
+            return;
+          }
         }
-      });
+      }
       // fetch package info on npm
       const repoName = `@tigojs/${name}`;
       const repo = npm.repo(repoName);
@@ -78,11 +89,11 @@ const mount = async (app: Application, program: commander.Command): Promise<void
       }
       // install module
       const { version } = pkg;
-      app.logger.info(`Detected version ${version}, start installing...`);
+      app.logger.info(`Detected version v${version}, start installing...`);
       child_process.execSync(`npm install ${repoName}`, { stdio: 'inherit' });
       app.logger.info('Module installed.');
       // build config
-      if (rc.plugins[name]) {
+      if (!rc.plugins[name]) {
         rc.plugins[name].package = repoName;
       } else {
         rc.plugins[name] = {
@@ -91,14 +102,13 @@ const mount = async (app: Application, program: commander.Command): Promise<void
       }
       // write config
       writeRuntimeConfig(rcStatus, rc);
-      if (pkg.tigo && pkg.tigo.postInstall) {
+      if (pkg.tigo && pkg.tigo.scripts && pkg.tigo.scripts.postInstall) {
         // run post install script
-        const postInstallScriptPath = path.resolve(app.workDir, `./node_modules/${pkg.name}/${pkg.tigo.postInstall}`);
-        let postInstall;
+        const postInstallScriptPath = path.resolve(app.workDir, `./node_modules/${pkg.name}/${pkg.tigo.scripts.postInstall}`);
         if (fs.existsSync(postInstallScriptPath)) {
-          postInstall = await import(postInstallScriptPath);
+          const postInstall = (await import(postInstallScriptPath)).default;
+          await postInstall.bind(buildPostInstallThisArg(app, rcStatus, rc))();
         }
-        await postInstall.bind(buildPostInstallThisArg(app, rcStatus, rc))();
       }
       app.logger.info('Module has added to your tigo server.');
     });

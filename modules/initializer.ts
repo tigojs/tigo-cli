@@ -12,7 +12,7 @@ import { Application } from '../interface/application';
 import { writeFileFromReq } from '../utils/network';
 import { getFileShaSum } from '../utils/hash';
 import { extractTgz } from '../utils/pack';
-import { checkGit, getRuntimeConfigStatus, writeRuntimeConfig } from '../utils/env';
+import { checkGit, getDevConfig, getRuntimeConfigStatus, writeRuntimeConfig } from '../utils/env';
 import { RuntimeConfig } from '../interface/rc';
 import { getConfig } from '../utils/config';
 
@@ -152,23 +152,21 @@ const initializeLambdaEnv = async (app: Application) => {
   const config = getConfig();
   if (config && config.api_access_key && config.api_secret_key) {
     const { api_access_key: ak, api_secret_key: sk } = config;
-    const devConfigPath = path.resolve(app.workDir, './.tigodev.json');
-    let devConfig;
-    if (fs.existsSync(devConfigPath)) {
-      try {
-        devConfig = JSON.parse(fs.readFileSync(devConfigPath, { encoding: 'utf-8' }));
-      } catch {
-        app.logger.error('Cannot read dev environment configuration.');
-      }
-    }
+    let devConfig = getDevConfig(app);
     devConfig = devConfig || {};
-    devConfig.upload = devConfig.upload || {};
-    Object.assign(devConfig.upload, {
-      accessKey: ak,
-      secretKey: sk,
-    });
+    if (devConfig.content.upload) {
+      Object.assign(devConfig.content.upload, {
+        accessKey: ak,
+        secretKey: sk,
+      });
+    } else {
+      devConfig.content.upload = {
+        accessKey: ak,
+        secretKey: sk,
+      };
+    }
     try {
-      fs.writeFileSync(devConfigPath, JSON.stringify(devConfig, null, '  '), { encoding: 'utf-8' });
+      fs.writeFileSync(devConfig.path, JSON.stringify(devConfig.content, null, '  '), { encoding: 'utf-8' });
       app.logger.info('Dev environment configuration initialized.');
     } catch {
       app.logger.error('Cannot write dev environment configuration.');

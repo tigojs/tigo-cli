@@ -1,7 +1,8 @@
 import shelljs from 'shelljs';
 import path from 'path';
 import fs from 'fs';
-import { RuntimeConfig, RuntimeConfigStatus } from '../interface/rc';
+import { LambdaDevConfig, RuntimeConfig, RuntimeConfigStatus } from '../interface/rc';
+import { Application } from '../interface/application';
 
 interface EnvCheckOptions {
   minNodeVersion: number;
@@ -92,6 +93,23 @@ export const writeRuntimeConfig = (status: RuntimeConfigStatus, config: RuntimeC
     }
   }
   fs.writeFileSync(status.json.path, JSON.stringify(config, null, '  '), { encoding: 'utf-8' });
+};
+
+export const getDevConfig = (app: Application, dir?: string): LambdaDevConfig => {
+  const devConfigPath = path.resolve(dir || app.workDir, './.tigodev.json');
+  let devConfig;
+  if (fs.existsSync(devConfigPath)) {
+    try {
+      devConfig = JSON.parse(fs.readFileSync(devConfigPath, { encoding: 'utf-8' }));
+    } catch (err) {
+      app.logger.error('Cannot read dev environment configuration.');
+      throw err;
+    }
+  }
+  return {
+    path: devConfigPath,
+    content: devConfig,
+  };
 };
 
 export const checkGit = (): GitStatus => {

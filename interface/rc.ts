@@ -43,3 +43,24 @@ export interface RuntimeConfigStatus {
     exists: boolean;
   };
 }
+
+export interface LambdaDevConfig {
+  path: string,
+  content: {
+    devServer?: {
+      port?: number,
+      maxFileSize?: number,
+    },
+    lambda?: {
+      allowRequire?: Array<string>,
+      env: Record<string, unknown>,
+    },
+    rollup?: {
+      output?: string,
+    },
+    upload?: {
+      accessKey: string,
+      secretKey: string,
+    },
+  },
+}
