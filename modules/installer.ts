@@ -108,7 +108,7 @@ const mount = async (app: Application, program: commander.Command): Promise<void
         if (fs.existsSync(postInstallScriptPath)) {
           const postInstall = (await import(postInstallScriptPath)).default;
           if (postInstall) {
-            await postInstall.bind(buildPostInstallThisArg(app, rcStatus, rc))();
+            await postInstall.call(buildPostInstallThisArg(app, rcStatus, rc));
           }
         }
       }
