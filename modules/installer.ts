@@ -93,7 +93,7 @@ const mount = async (app: Application, program: commander.Command): Promise<void
       child_process.execSync(`npm install ${repoName}`, { stdio: 'inherit' });
       app.logger.info('Module installed.');
       // build config
-      if (!rc.plugins[name]) {
+      if (rc.plugins[name]) {
         rc.plugins[name].package = repoName;
       } else {
         rc.plugins[name] = {
@@ -107,7 +107,9 @@ const mount = async (app: Application, program: commander.Command): Promise<void
         const postInstallScriptPath = path.resolve(app.workDir, `./node_modules/${pkg.name}/${pkg.tigo.scripts.postInstall}`);
         if (fs.existsSync(postInstallScriptPath)) {
           const postInstall = (await import(postInstallScriptPath)).default;
-          await postInstall.bind(buildPostInstallThisArg(app, rcStatus, rc))();
+          if (postInstall) {
+            await postInstall.bind(buildPostInstallThisArg(app, rcStatus, rc))();
+          }
         }
       }
       app.logger.info('Module has added to your tigo server.');
