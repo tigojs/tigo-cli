@@ -60,7 +60,7 @@ const mount = async (app: Application, program: commander.Command): Promise<void
           return;
         }
         if (node.package.replace('@tigojs/', '') === name) {
-          app.logger.info('This module has already existed.');
+          app.logger.warn('This module has already existed.');
           const answers = await inquirer.prompt({
             type: 'confirm',
             name: 'still',
