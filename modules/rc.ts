@@ -35,8 +35,7 @@ const mount = async (app: Application, program: commander.Command): Promise<void
           current[k] = {};
         }
         if (keys.length === 0) {
-          const num = parseInt(value, 10);
-          current[k] = isNaN(num) ? value : num;
+          current[k] = /^(\+|-)?\d+.?(\d+)?$/.test(value) ? parseFloat(value) : value;
         }
         current = obj;
       }
