@@ -40,9 +40,9 @@ const buildPostInstallThisArg = (app: Application, rcStatus: RuntimeConfigStatus
 
 const mount = async (app: Application, program: commander.Command): Promise<void> => {
   program
-    .command('add <name>')
+    .command('add <moduleName>')
     .description('Add official module to tigo server')
-    .action(async (name) => {
+    .action(async (moduleName) => {
       const rcStatus = await getRuntimeConfigStatus(app.workDir);
       const rc = await getRuntimeConfig(rcStatus);
       if (!rc) {
@@ -59,7 +59,7 @@ const mount = async (app: Application, program: commander.Command): Promise<void
         if (!node) {
           return;
         }
-        if (node.package.replace('@tigojs/', '') === name) {
+        if (node.package.replace('@tigojs/', '') === moduleName) {
           app.logger.warn('This module has already existed.');
           const answers = await inquirer.prompt({
             type: 'confirm',
@@ -73,7 +73,7 @@ const mount = async (app: Application, program: commander.Command): Promise<void
         }
       }
       // fetch package info on npm
-      const repoName = `@tigojs/${name}`;
+      const repoName = `@tigojs/${moduleName}`;
       const repo = npm.repo(repoName);
       app.logger.info('Fetching package information from npm...');
       let pkg;
@@ -93,10 +93,10 @@ const mount = async (app: Application, program: commander.Command): Promise<void
       child_process.execSync(`npm install ${repoName}`, { stdio: 'inherit' });
       app.logger.info('Module installed.');
       // build config
-      if (rc.plugins[name]) {
-        rc.plugins[name].package = repoName;
+      if (rc.plugins[moduleName]) {
+        rc.plugins[moduleName].package = repoName;
       } else {
-        rc.plugins[name] = {
+        rc.plugins[moduleName] = {
           package: repoName,
         };
       }
