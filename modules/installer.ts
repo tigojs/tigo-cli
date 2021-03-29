@@ -44,7 +44,7 @@ const mount = async (app: Application, program: commander.Command): Promise<void
     .description('Add official module to tigo server')
     .action(async (name) => {
       const rcStatus = await getRuntimeConfigStatus(app.workDir);
-      const rc = await getRuntimeConfig(app.workDir, rcStatus);
+      const rc = await getRuntimeConfig(rcStatus);
       if (!rc) {
         app.logger.error('Cannot find configuration file for tigo.');
         process.exit(-10400);

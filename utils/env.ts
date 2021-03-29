@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import { LambdaDevConfig, RuntimeConfig, RuntimeConfigStatus } from '../interface/rc';
 import { Application } from '../interface/application';
+import prettier from 'prettier';
 
 interface EnvCheckOptions {
   minNodeVersion: number;
@@ -72,8 +73,10 @@ export const getRuntimeConfigStatus = (runtimeDir: string): RuntimeConfigStatus 
   };
 };
 
-export const getRuntimeConfig = async (runtimeDir: string, status?: RuntimeConfigStatus): Promise<RuntimeConfig | null> => {
-  const rcStatus = status || getRuntimeConfigStatus(runtimeDir);
+async function getRuntimeConfig (workDir: string): Promise<RuntimeConfig | null>;
+async function getRuntimeConfig (status: RuntimeConfigStatus): Promise<RuntimeConfig | null>;
+async function getRuntimeConfig (arg: RuntimeConfigStatus | string): Promise<RuntimeConfig | null> {
+  const rcStatus: RuntimeConfigStatus = typeof arg === 'string' ? getRuntimeConfigStatus(arg) : arg;
   if (rcStatus.json.exists) {
     const rc = JSON.parse(fs.readFileSync(rcStatus.json.path, { encoding: 'utf-8' }));
     return rc;
@@ -82,17 +85,18 @@ export const getRuntimeConfig = async (runtimeDir: string, status?: RuntimeConfi
     return rc;
   }
   return null;
-};
+}
+
+export { getRuntimeConfig };
 
 export const writeRuntimeConfig = (status: RuntimeConfigStatus, config: RuntimeConfig): void => {
   if (status.js.exists) {
-    try {
-      fs.unlinkSync(status.js.path);
-    } catch {
-      throw new Error('Failed to convert js runtime config to json format.');
-    }
+    fs.writeFileSync(status.js.path, prettier.format(`module.exports = ${JSON.stringify(config)}`), { encoding: 'utf-8' });
+  } else if (status.json.exists) {
+    fs.writeFileSync(status.json.path, JSON.stringify(config, null, '  '), { encoding: 'utf-8' });
+  } else {
+    throw new Error('Runtime config does not exist.');
   }
-  fs.writeFileSync(status.json.path, JSON.stringify(config, null, '  '), { encoding: 'utf-8' });
 };
 
 export const getDevConfig = (app: Application, dir?: string): LambdaDevConfig => {

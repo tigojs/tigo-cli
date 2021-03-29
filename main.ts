@@ -28,7 +28,7 @@ if (!app.store.envCheckPassed) {
 }
 
 // load modules
-modules.forEach(async (mount: (app: Application, program: commander.Command) => unknown): Promise<void> => {
+modules.forEach(async (mount: (app: Application, program: commander.Command) => void): Promise<void> => {
   await mount(app, program);
 });
 
