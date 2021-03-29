@@ -81,7 +81,7 @@ async function getRuntimeConfig (arg: RuntimeConfigStatus | string): Promise<Run
     const rc = JSON.parse(fs.readFileSync(rcStatus.json.path, { encoding: 'utf-8' }));
     return rc;
   } else if (rcStatus.js.exists) {
-    const rc = import(rcStatus.js.path);
+    const rc = (await import(rcStatus.js.path)).default;
     return rc;
   }
   return null;
@@ -96,6 +96,7 @@ export const writeRuntimeConfig = (status: RuntimeConfigStatus, config: RuntimeC
       useTabs: false,
       singleQuote: true,
       semi: true,
+      parser: 'babel',
     }), { encoding: 'utf-8' });
   } else if (status.json.exists) {
     fs.writeFileSync(status.json.path, JSON.stringify(config, null, '  '), { encoding: 'utf-8' });
