@@ -91,7 +91,12 @@ export { getRuntimeConfig };
 
 export const writeRuntimeConfig = (status: RuntimeConfigStatus, config: RuntimeConfig): void => {
   if (status.js.exists) {
-    fs.writeFileSync(status.js.path, prettier.format(`module.exports = ${JSON.stringify(config)}`), { encoding: 'utf-8' });
+    fs.writeFileSync(status.js.path, prettier.format(`module.exports = ${JSON.stringify(config)}`, {
+      tabWidth: 2,
+      useTabs: false,
+      singleQuote: true,
+      semi: true,
+    }), { encoding: 'utf-8' });
   } else if (status.json.exists) {
     fs.writeFileSync(status.json.path, JSON.stringify(config, null, '  '), { encoding: 'utf-8' });
   } else {
