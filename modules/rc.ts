@@ -1,7 +1,9 @@
 import chalk from 'chalk';
 import commander from 'commander';
+import fs from 'fs';
 import { Application } from '../interface/application';
-import { getRuntimeConfig, getRuntimeConfigStatus, writeRuntimeConfig } from '../utils/env';
+import { LambdaDevConfig, RuntimeConfig } from '../interface/rc';
+import { getDevConfig, getRuntimeConfig, getRuntimeConfigStatus, writeRuntimeConfig } from '../utils/env';
 
 const mount = async (app: Application, program: commander.Command): Promise<void> => {
   const cmd = program.command('rc').description('Operate the server runtime config.');
@@ -10,14 +12,18 @@ const mount = async (app: Application, program: commander.Command): Promise<void
     .description('Set a configuration item in .tigorc or .tigodev (depending on the work directory)')
     .action(async (key, value) => {
       const status = getRuntimeConfigStatus(app.workDir);
-      const rc = await getRuntimeConfig(status);
+      let rc: RuntimeConfig | LambdaDevConfig | null = await getRuntimeConfig(status);
       if (!rc) {
-        console.error(chalk.red('Cannot get contents from .tigorc.'));
-        return;
+        // try to read dev config
+        rc = getDevConfig(app);
+        if (!rc) {
+          console.error(chalk.red('Cannot get contents from .tigorc.'));
+          return;
+        }
       }
       const keys: Array<string> = key.split('.');
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let current: any = rc;
+      let current: any = rc.content || rc;
       while (keys.length) {
         const k = keys.shift();
         if (typeof k === 'undefined') {
@@ -34,7 +40,11 @@ const mount = async (app: Application, program: commander.Command): Promise<void
         }
         current = obj;
       }
-      writeRuntimeConfig(status, rc);
+      if (rc.path) {
+        fs.writeFileSync(<string> rc.path, JSON.stringify(rc.content, null, '  '), { encoding: 'utf-8' });
+      } else {
+        writeRuntimeConfig(status, <RuntimeConfig> rc);
+      }
       console.log(chalk.green(`Option ${key} has been set.`));
     });
   cmd
@@ -42,9 +52,14 @@ const mount = async (app: Application, program: commander.Command): Promise<void
     .description('Get your configuration from .tigorc or .tigodev (depending on the work directory)')
     .action(async (key) => {
       const status = getRuntimeConfigStatus(app.workDir);
-      const rc = await getRuntimeConfig(status);
+      let rc: RuntimeConfig | LambdaDevConfig | null = await getRuntimeConfig(status);
       if (!rc) {
-        throw new Error('Cannot get contents from .tigorc.');
+        // try to read dev config
+        rc = getDevConfig(app);
+        if (!rc) {
+          console.error(chalk.red('Cannot get contents from .tigorc or .tigodev.'));
+          return;
+        }
       }
       const keys = key.split('.');
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
