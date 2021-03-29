@@ -29,7 +29,8 @@ const mount = async (app: Application, program: commander.Command): Promise<void
           current[k] = {};
         }
         if (keys.length === 0) {
-          current[k] = value;
+          const num = parseInt(value, 10);
+          current[k] = isNaN(num) ? value : num;
         }
         current = obj;
       }
