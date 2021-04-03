@@ -154,13 +154,13 @@ const initializeLambdaEnv = async (app: Application) => {
     const { api_access_key: ak, api_secret_key: sk } = config;
     let devConfig = getDevConfig(app);
     devConfig = devConfig || {};
-    if (devConfig.content.upload) {
-      Object.assign(devConfig.content.upload, {
+    if (devConfig.content.deploy) {
+      Object.assign(devConfig.content.deploy, {
         accessKey: ak,
         secretKey: sk,
       });
     } else {
-      devConfig.content.upload = {
+      devConfig.content.deploy = {
         accessKey: ak,
         secretKey: sk,
       };

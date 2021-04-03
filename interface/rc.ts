@@ -58,9 +58,11 @@ export interface LambdaDevConfig {
     rollup?: {
       output?: string,
     },
-    upload?: {
-      accessKey: string,
-      secretKey: string,
+    deploy?: {
+      host?: string,
+      https?: boolean,
+      accessKey?: string,
+      secretKey?: string,
     },
   },
 }
