@@ -150,30 +150,49 @@ const initializeLambdaEnv = async (app: Application) => {
   child_process.execSync('npm install', { stdio: 'inherit' });
   app.logger.info('Dependencies installed.');
   // init dev env config
-  const config = getConfig();
-  if (config) {
-    let devConfig = getDevConfig(app);
-    devConfig = devConfig || {};
-    const { access_key: ak, secret_key: sk } = config;
-    if (!devConfig.content.deploy) {
-      devConfig.content.deploy = {};
-    }
-    if (config.access_key && config.secret_key) {
-      Object.assign(devConfig.content.deploy, {
-        accessKey: ak,
-        secretKey: sk,
-      });
-    }
-    if (config.host) {
-      const host = parseHost(config.host);
-      Object.assign(devConfig.content.deploy, host);
-    }
-    try {
-      fs.writeFileSync(devConfig.path, JSON.stringify(devConfig.content, null, '  '), { encoding: 'utf-8' });
-      app.logger.info('Dev environment configuration initialized.');
-    } catch {
-      app.logger.error('Cannot write dev environment configuration.');
-    }
+  const config = getConfig() || {};
+  let devConfig = getDevConfig(app) || {};
+  devConfig = devConfig || {};
+  const { access_key: ak, secret_key: sk } = config;
+  if (!devConfig.content.deploy) {
+    devConfig.content.deploy = {};
+  }
+  if (config.access_key && config.secret_key) {
+    Object.assign(devConfig.content.deploy, {
+      accessKey: ak,
+      secretKey: sk,
+    });
+  }
+  if (config.host) {
+    const host = parseHost(config.host);
+    Object.assign(devConfig.content.deploy, host);
+  }
+  // ask the port
+  const answer = await inquirer.prompt([
+    {
+      type: 'number',
+      message: 'Which port you want to the dev server to listen on?',
+      default: 9292,
+      name: 'port',
+      validate: (value) => {
+        if (value <= 0 || value > 65535) {
+          return 'The input is invalid, please retry.';
+        }
+        return true;
+      },
+    },
+  ]);
+  if (!devConfig.content.devServer) {
+    devConfig.content.devServer = {};
+  }
+  Object.assign(devConfig.content.devServer, {
+    port: answer.port,
+  });
+  try {
+    fs.writeFileSync(devConfig.path, JSON.stringify(devConfig.content, null, '  '), { encoding: 'utf-8' });
+    app.logger.info('Dev environment configuration initialized.');
+  } catch {
+    app.logger.error('Cannot write dev environment configuration.');
   }
   app.logger.info('Lambda dev environment is ready, now you can develope your own function.');
 };
