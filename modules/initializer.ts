@@ -15,6 +15,7 @@ import { extractTgz } from '../utils/pack';
 import { checkGit, getDevConfig, getRuntimeConfigStatus, writeRuntimeConfig } from '../utils/env';
 import { RuntimeConfig } from '../interface/rc';
 import { getConfig } from '../utils/config';
+import { parseHost } from '../utils/host';
 
 const npm = new NpmApi();
 
@@ -150,20 +151,22 @@ const initializeLambdaEnv = async (app: Application) => {
   app.logger.info('Dependencies installed.');
   // init dev env config
   const config = getConfig();
-  if (config && config.api_access_key && config.api_secret_key) {
-    const { api_access_key: ak, api_secret_key: sk } = config;
+  if (config) {
     let devConfig = getDevConfig(app);
     devConfig = devConfig || {};
-    if (devConfig.content.deploy) {
+    const { access_key: ak, secret_key: sk } = config;
+    if (!devConfig.content.deploy) {
+      devConfig.content.deploy = {};
+    }
+    if (config.access_key && config.secret_key) {
       Object.assign(devConfig.content.deploy, {
         accessKey: ak,
         secretKey: sk,
       });
-    } else {
-      devConfig.content.deploy = {
-        accessKey: ak,
-        secretKey: sk,
-      };
+    }
+    if (config.host) {
+      const host = parseHost(config.host);
+      Object.assign(devConfig.content.deploy, host);
     }
     try {
       fs.writeFileSync(devConfig.path, JSON.stringify(devConfig.content, null, '  '), { encoding: 'utf-8' });

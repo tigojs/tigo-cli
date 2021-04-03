@@ -8,7 +8,10 @@ const mount = (app: Application, program: commander.Command): void => {
     .command('set <key> <value>')
     .description('Set configuration for cli.')
     .action(async ({ key, value }) => {
-      const config = getConfig() || null;
+      let config = getConfig();
+      if (!config) {
+        config = {};
+      }
       Object.assign(config, {
         [key]: value,
       });
