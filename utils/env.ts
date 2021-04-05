@@ -98,10 +98,9 @@ export const writeRuntimeConfig = (status: RuntimeConfigStatus, config: RuntimeC
       semi: true,
       parser: 'babel',
     }), { encoding: 'utf-8' });
-  } else if (status.json.exists) {
-    fs.writeFileSync(status.json.path, JSON.stringify(config, null, '  '), { encoding: 'utf-8' });
   } else {
-    throw new Error('Runtime config does not exist.');
+    // js config file does not exist, write config in json format by default
+    fs.writeFileSync(status.json.path, JSON.stringify(config, null, '  '), { encoding: 'utf-8' });
   }
 };
 
