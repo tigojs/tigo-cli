@@ -181,13 +181,48 @@ const initializeLambdaEnv = async (app: Application) => {
         return true;
       },
     },
+    {
+      type: 'confirm',
+      message: 'Do you want to enable Lambda KV Storage?',
+      default: false,
+      name: 'kv',
+    },
+    {
+      type: 'confirm',
+      message: 'Do you want to enable OSS Mock?',
+      default: false,
+      name: 'oss',
+    },
+    {
+      type: 'confirm',
+      message: 'Do you want to enable CFS Mock?',
+      default: false,
+      name: 'cfs',
+    },
   ]);
+  // set up devServer part
   if (!devConfig.content.devServer) {
     devConfig.content.devServer = {};
   }
   Object.assign(devConfig.content.devServer, {
     port: answer.port,
   });
+  // set up lambda part
+  if (!devConfig.content.lambda) {
+    devConfig.content.lambda = {};
+  }
+  Object.assign(devConfig.content.lambda, {
+    cfs: {
+      enable: answer.cfs,
+    },
+    oss: {
+      enable: answer.oss,
+    },
+    kv: {
+      enable: answer.kv,
+    },
+  });
+  // write config file
   try {
     fs.writeFileSync(devConfig.path, JSON.stringify(devConfig.content, null, '  '), { encoding: 'utf-8' });
     app.logger.info('Dev environment configuration initialized.');

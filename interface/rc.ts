@@ -53,7 +53,16 @@ export interface LambdaDevConfig {
     },
     lambda?: {
       allowRequire?: Array<string>,
-      env: Record<string, unknown>,
+      env?: Record<string, unknown>,
+      cfs?: {
+        enable: boolean,
+      },
+      oss?: {
+        enable: boolean,
+      },
+      kv?: {
+        enable: boolean,
+      },
     },
     rollup?: {
       output?: string,
