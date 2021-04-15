@@ -4,7 +4,7 @@ import child_process from 'child_process';
 import path from 'path';
 import fs from 'fs';
 import { Application } from '../interface/application';
-import { getRuntimeConfig, getRuntimeConfigStatus, writeRuntimeConfig } from '../utils/env';
+import { checkServerDir, getRuntimeConfig, getRuntimeConfigStatus, writeRuntimeConfig } from '../utils/env';
 import inquirer from 'inquirer';
 import shelljs from 'shelljs';
 import { Logger } from 'log4js';
@@ -141,6 +141,10 @@ const mount = async (app: Application, program: commander.Command): Promise<void
         await installToLambdaEnv(app, moduleName);
       } else {
         // server
+        if (!checkServerDir(app.workDir)) {
+          app.logger.error('tigo server cannot be detected in the current folder.');
+          process.exit(-10400);
+        }
         await installToServer(app, moduleName);
       }
     });

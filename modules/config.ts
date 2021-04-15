@@ -3,7 +3,9 @@ import { Application } from '../interface/application';
 import { getConfig, saveConfig } from '../utils/config';
 
 const mount = (app: Application, program: commander.Command): void => {
-  const cmd = program.command('config');
+  const cmd = program
+    .command('config')
+    .description('Operate the configuration file.');
   cmd
     .command('set <key> <value>')
     .description('Set configuration for cli.')

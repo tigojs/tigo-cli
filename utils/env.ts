@@ -73,6 +73,10 @@ export const getRuntimeConfigStatus = (runtimeDir: string): RuntimeConfigStatus 
   };
 };
 
+export const checkServerDir = (dir: string): boolean => {
+  return getRuntimeConfigStatus(dir).exists;
+}
+
 async function getRuntimeConfig (workDir: string): Promise<RuntimeConfig | null>;
 async function getRuntimeConfig (status: RuntimeConfigStatus): Promise<RuntimeConfig | null>;
 async function getRuntimeConfig (arg: RuntimeConfigStatus | string): Promise<RuntimeConfig | null> {
