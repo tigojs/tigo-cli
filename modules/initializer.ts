@@ -58,12 +58,12 @@ const extractServerPack = async (app: Application, packPath: string): Promise<vo
   const { code: mvCode } = shelljs.mv('./package/*', './');
   if (mvCode !== 0) {
     app.logger.error('Move server files failed.');
-    process.exit(-10500);
+    return process.exit(-10500);
   }
   const { code: rmCode } = shelljs.rm('-rf', './package');
   if (rmCode !== 0) {
     app.logger.error('Remove temp folder failed.');
-    process.exit(-10500);
+    return process.exit(-10500);
   }
   // run npm install
   app.logger.info('Package extracted, starting to install dependencies...');
@@ -83,7 +83,7 @@ const downloadServerPack = async (app: Application): Promise<void> => {
     pkg = await repo.package();
   } catch (err) {
     app.logger.error('Fetching server package failed.', err.mesage || err);
-    process.exit(-10500);
+    return process.exit(-10500);
   }
   const { tarball, shasum } = pkg.dist;
   app.logger.info('Server package founded on npm.');
@@ -112,7 +112,7 @@ const downloadServerPack = async (app: Application): Promise<void> => {
     await writeFileFromReq(req, tempSavePath);
   } catch (err) {
     app.logger.error('Saving package failed.', err.message || err);
-    process.exit(-10500);
+    return process.exit(-10500);
   }
   bar.update(bar.getTotal());
   bar.stop();
@@ -120,7 +120,7 @@ const downloadServerPack = async (app: Application): Promise<void> => {
   const downloadedShaSum = await getFileShaSum(tempSavePath);
   if (downloadedShaSum !== shasum) {
     app.logger.error('Package hash mismatch.');
-    process.exit(-10500);
+    return process.exit(-10500);
   }
   extractServerPack(app, tempSavePath);
 };
@@ -129,7 +129,7 @@ const initializeLambdaEnv = async (app: Application) => {
   const gitStatus = checkGit();
   if (!gitStatus.installed) {
     app.logger.error('Git is not installed, please install git first.');
-    process.exit(-10400);
+    return process.exit(-10400);
   }
   // clone repo
   app.logger.info('Downloading repository...');
@@ -138,12 +138,12 @@ const initializeLambdaEnv = async (app: Application) => {
   const { code: mvCode } = shelljs.mv('./tigo-lambda-template/*', './tigo-lambda-template/.*', './');
   if (mvCode !== 0) {
     app.logger.error('Cannot move repository files.');
-    process.exit(-10500);
+    return process.exit(-10500);
   }
   const { code: rmCode } = shelljs.rm('-rf', './tigo-lambda-template');
   if (rmCode !== 0) {
     app.logger.error('Remove temp folder failed.');
-    process.exit(-10500);
+    return process.exit(-10500);
   }
   // install dependencies
   app.logger.info('Start installing dependencies...');
