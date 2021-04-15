@@ -246,7 +246,7 @@ const checkWorkDir = async (workDir: string): Promise<boolean> => {
 const mount = (app: Application, program: commander.Command): void => {
   program
     .command('init <template>')
-    .description('initialize project by using tigo templates (server, lambda)')
+    .description('Initialize project by using tigo templates (server, lambda)')
     .action(async (type: string) => {
       // check work dir
       if (type === 'server') {
