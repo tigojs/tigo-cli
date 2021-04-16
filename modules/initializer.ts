@@ -82,7 +82,7 @@ const downloadServerPack = async (app: Application): Promise<void> => {
   try {
     pkg = await repo.package();
   } catch (err) {
-    app.logger.error('Fetching server package failed.', err.mesage || err);
+    app.logger.error('Fetching server package failed.', err.message || err);
     return process.exit(-10500);
   }
   const { tarball, shasum } = pkg.dist;
