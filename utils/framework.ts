@@ -33,7 +33,7 @@ export const downloadFrameworkPack = async (app: Application): Promise<DownloadM
     pkg = await repo.package();
   } catch (err) {
     app.logger.error('Fetching server package failed.', err.message || err);
-    throw err;
+    return process.exit(-10508);
   }
   const { version: pkgVer } = pkg;
   const { tarball, shasum } = pkg.dist;
@@ -62,14 +62,15 @@ export const downloadFrameworkPack = async (app: Application): Promise<DownloadM
     await writeFileFromReq(req, tempSavePath);
   } catch (err) {
     app.logger.error('Saving package failed.', err.message || err);
-    throw err;
+    return process.exit(-10509)
   }
   bar.update(bar.getTotal());
   bar.stop();
   // check sum
   const downloadedShaSum = await getFileShaSum(tempSavePath);
   if (downloadedShaSum !== shasum) {
-    throw new Error('Package hash mismatch.');
+    app.logger.error('Package hash mismatch.');
+    return process.exit(-10510);
   }
   return { packPath: tempSavePath };
 };
