@@ -26,14 +26,17 @@ export const extractFrameworkPack = async ({ app, packPath, targetPath }: Extrac
   await extractTgz(packPath, targetPath);
 };
 
-export const downloadFrameworkPack = async (app: Application): Promise<DownloadMethodReturns> => {
+export const downloadFrameworkPack = async (app: Application, packageInfo?: unknown): Promise<DownloadMethodReturns> => {
   const repo = npm.repo('tigo');
-  let pkg;
-  try {
-    pkg = await repo.package();
-  } catch (err) {
-    app.logger.error('Fetching server package failed.', err.message || err);
-    return process.exit(-10508);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let pkg = <any>packageInfo;
+  if (!pkg) {
+    try {
+      pkg = await repo.package();
+    } catch (err) {
+      app.logger.error('Fetching server package failed.', err.message || err);
+      return process.exit(-10508);
+    }
   }
   const { version: pkgVer } = pkg;
   const { tarball, shasum } = pkg.dist;
@@ -62,7 +65,7 @@ export const downloadFrameworkPack = async (app: Application): Promise<DownloadM
     await writeFileFromReq(req, tempSavePath);
   } catch (err) {
     app.logger.error('Saving package failed.', err.message || err);
-    return process.exit(-10509)
+    return process.exit(-10509);
   }
   bar.update(bar.getTotal());
   bar.stop();
