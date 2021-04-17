@@ -22,7 +22,7 @@ interface DownloadMethodReturns {
 }
 
 export const extractFrameworkPack = async ({ app, packPath, targetPath }: ExtractMethodParams): Promise<void> => {
-  app.logger.info('Starting to extract the package...');
+  app.logger.debug('Starting to extract the package...');
   await extractTgz(packPath, targetPath);
 };
 
@@ -37,20 +37,20 @@ export const downloadFrameworkPack = async (app: Application): Promise<DownloadM
   }
   const { version: pkgVer } = pkg;
   const { tarball, shasum } = pkg.dist;
-  app.logger.info('Server package founded on npm.');
+  app.logger.debug('Server package has been found on npm.');
   const tempSavePath = path.resolve(app.tempDir, `./server_${pkgVer}.tgz`);
   // check exists pack
   if (fs.existsSync(tempSavePath)) {
     const localTempHash = await getFileShaSum(tempSavePath);
     if (shasum === localTempHash) {
-      app.logger.info('Detected usable cached package, skip downloading.');
+      app.logger.debug('Detected usable cached package, skip downloading.');
       return { packPath: tempSavePath };
     }
   }
   // download package
-  app.logger.info('Starting to download the package.');
+  app.logger.debug('Starting to download the package...');
   const bar = new progress.SingleBar({
-    format: chalk.hex('#f16d41')('Downloading server package... [{bar}] {percentage}%'),
+    format: chalk.cyan('Downloading server package... [{bar}] {percentage}%'),
     hideCursor: true,
   });
   const req = request.get(tarball);

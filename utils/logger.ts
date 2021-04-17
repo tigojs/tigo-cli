@@ -4,6 +4,10 @@ log4js.configure({
   appenders: {
     stdout: {
       type: 'stdout',
+      layout: {
+        type: 'pattern',
+        pattern: '%[%m%]'
+      },
     },
   },
   categories: {

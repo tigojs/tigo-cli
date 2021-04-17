@@ -42,7 +42,7 @@ const buildPostInstallThisArg = (app: Application, rcStatus: RuntimeConfigStatus
 const fetchPackageInfo = async (app: Application, prefix: string, moduleName: string): Promise<any> => {
   const repoName = `${prefix}${moduleName}`;
   const repo = npm.repo(repoName);
-  app.logger.info('Fetching package information from npm...');
+  app.logger.debug('Fetching package information from npm...');
   let pkg;
   try {
     pkg = await repo.package();
@@ -94,9 +94,9 @@ const installToServer = async (app: Application, moduleName: string): Promise<vo
   const { pkg, repoName } = await fetchPackageInfo(app, '@tigojs/', moduleName);
   // install module
   const { version } = pkg;
-  app.logger.info(`Detected version v${version}, start installing...`);
+  app.logger.debug(`Detected version v${version}, start installing...`);
   child_process.execSync(`npm install ${repoName}`, { stdio: 'inherit' });
-  app.logger.info('Module installed.');
+  app.logger.debug('Module package has been successfully installed.');
   // build config
   if (rc.plugins[moduleName]) {
     rc.plugins[moduleName].package = repoName;
@@ -124,7 +124,7 @@ const installToLambdaEnv = async (app: Application, moduleName: string): Promise
   // fetch package info from npm
   const { pkg, repoName } = await fetchPackageInfo(app, '@tigojs/', moduleName);
   const { version } = pkg;
-  app.logger.info(`Detected version v${version}, start installing...`);
+  app.logger.debug(`Detected version v${version}, start installing...`);
   child_process.execSync(`npm install ${repoName}`, { stdio: 'inherit' });
   app.logger.info(`Lambda package [${repoName}] has been installed successfully.`);
 };

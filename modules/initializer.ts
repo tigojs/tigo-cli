@@ -49,7 +49,7 @@ const initializeLambdaEnv = async (app: Application) => {
     return process.exit(-10401);
   }
   // clone repo
-  app.logger.info('Downloading repository...');
+  app.logger.debug('Downloading repository...');
   child_process.execSync('git clone -b main https://github.com/tigojs/tigo-lambda-template.git --depth 1', { stdio: 'inherit' });
   app.logger.info('Repository downloaded.');
   const { code: mvCode } = shelljs.mv('./tigo-lambda-template/*', './tigo-lambda-template/.*', './');
@@ -63,7 +63,7 @@ const initializeLambdaEnv = async (app: Application) => {
     return process.exit(-10502);
   }
   // install dependencies
-  app.logger.info('Start installing dependencies...');
+  app.logger.debug('Start installing dependencies...');
   child_process.execSync('npm install', { stdio: 'inherit' });
   app.logger.info('Dependencies installed.');
   // init dev env config

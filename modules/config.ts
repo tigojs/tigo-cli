@@ -26,7 +26,7 @@ const mount = (app: Application, program: commander.Command): void => {
     .action(async (key: string) => {
       const config = getConfig();
       if (!config || !config[key]) {
-        app.logger.info('Cannot find the specific configuration.');
+        app.logger.error('Cannot find the specific configuration.');
         return;
       }
       app.logger.info(`${key}: ${config[key]}`);
@@ -37,7 +37,7 @@ const mount = (app: Application, program: commander.Command): void => {
     .action(async () => {
       const config = getConfig();
       if (!config) {
-        app.logger.info('Cannot find any configuration at current.');
+        app.logger.error('Cannot find any configuration at current.');
         return;
       }
       Object.keys(config).forEach((key) => {
