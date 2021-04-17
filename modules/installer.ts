@@ -53,10 +53,10 @@ const fetchPackageInfo = async (app: Application, prefix: string, moduleName: st
         return await fetchPackageInfo(app, '', moduleName);
       }
       app.logger.error('This package does not exist, please check your input.');
-      return process.exit(-10400);
+      return process.exit(-10402);
     }
     app.logger.error('Cannot fetch necessary information about the package.');
-    return process.exit(-10500);
+    return process.exit(-10505);
   }
 };
 
@@ -65,7 +65,7 @@ const installToServer = async (app: Application, moduleName: string): Promise<vo
   const rc = await getRuntimeConfig(rcStatus);
   if (!rc) {
     app.logger.error('Cannot find configuration file for tigo.');
-    return process.exit(-10400);
+    return process.exit(-10403);
   }
   if (!rc.plugins) {
     rc.plugins = {};
@@ -143,7 +143,7 @@ const mount = async (app: Application, program: commander.Command): Promise<void
         // server
         if (!checkServerDir(app.workDir)) {
           app.logger.error('tigo server cannot be detected in the current folder.');
-          return process.exit(-10400);
+          return process.exit(-10404);
         }
         await installToServer(app, moduleName);
       }
