@@ -22,7 +22,7 @@ if (!app.store.envCheckPassed) {
     checkEnvironment({ minNodeVersion: 14 });
   } catch (err) {
     console.log(chalk.red(err.message));
-    process.exit(-10400);
+    process.exit(-10010);
   }
   setStore(app.store, 'envCheckPassed', true);
 }
