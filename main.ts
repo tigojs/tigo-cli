@@ -17,11 +17,11 @@ console.log(chalk.hex('#f16d41')(`tigo-cli ${version}\nDeveloped by BackRunner`)
 
 // env check
 if (!app.store.envCheckPassed) {
-  app.logger.info('Checking environment...');
+  console.log(chalk.blue('Checking environment...'));
   try {
     checkEnvironment({ minNodeVersion: 14 });
   } catch (err) {
-    app.logger.error(err.message);
+    console.log(chalk.red(err.message));
     process.exit(-10400);
   }
   setStore(app.store, 'envCheckPassed', true);
