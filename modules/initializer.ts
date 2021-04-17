@@ -165,9 +165,11 @@ const mount = (app: Application, program: commander.Command): void => {
     .command('init <template>')
     .description('Initialize project by using tigo templates (server, lambda)')
     .action(async (type: string) => {
+      if (!await checkWorkDir(app.workDir)) {
+        return;
+      }
       // check work dir
       if (type === 'server') {
-        await checkWorkDir(app.workDir);
         const { packPath } = await downloadFrameworkPack(app);
         await extractFrameworkPack({
           app,
@@ -196,7 +198,6 @@ const mount = (app: Application, program: commander.Command): void => {
       } else if (type === 'server-config') {
         await initializeServerConfig(app);
       } else if (type === 'lambda') {
-        await checkWorkDir(app.workDir);
         await initializeLambdaEnv(app);
       } else {
         app.logger.error('You should specific a type to initialize.');
