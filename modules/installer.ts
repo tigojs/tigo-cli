@@ -23,20 +23,54 @@ interface postInstallThis {
     content: RuntimeConfig;
     write: (status: RuntimeConfigStatus, rc: RuntimeConfig) => void;
   };
+  getPluginConfig: (name: string) => unknown;
+  updateRuntimeConfig: (name: string, operation: (config: unknown) => void) => void;
+  saveRuntimeConfig: () => void;
 }
 
-const buildPostInstallThisArg = (app: Application, rcStatus: RuntimeConfigStatus, rc: RuntimeConfig): postInstallThis => ({
-  inquirer,
-  workDir: app.workDir,
-  npm,
-  shell: shelljs,
-  logger: app.logger,
-  rc: {
-    status: rcStatus,
-    content: rc,
-    write: writeRuntimeConfig,
-  },
-});
+const buildPostInstallThisArg = (app: Application, rcStatus: RuntimeConfigStatus, rc: RuntimeConfig): postInstallThis => {
+  const getPluginConfig = (name): unknown => {
+    if (!rc.plugins) {
+      return null;
+    }
+    const installedPlugins = Object.keys(rc.plugins);
+    for (const pluginName of installedPlugins) {
+      if (rc.plugins[pluginName].package === name) {
+        return rc.plugins[pluginName].config || {};
+      }
+    }
+    return null;
+  };
+  const saveRuntimeConfig = (): void => {
+    writeRuntimeConfig(rcStatus, rc);
+  };
+  return {
+    inquirer,
+    workDir: app.workDir,
+    npm,
+    shell: shelljs,
+    logger: app.logger,
+    rc: {
+      status: rcStatus,
+      content: rc,
+      write: writeRuntimeConfig,
+    },
+    getPluginConfig,
+    saveRuntimeConfig,
+    updateRuntimeConfig: (name, operation): void => {
+      const config = getPluginConfig(name);
+      if (config) {
+        if (typeof operation === 'function') {
+          operation(config);
+        }
+        saveRuntimeConfig();
+        app.logger.info('Runtime config has been updated.');
+      } else {
+        app.logger.error('Cannot get the content of runtime config, please set your manually.');
+      }
+    },
+  };
+};
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const fetchPackageInfo = async (app: Application, prefix: string, moduleName: string): Promise<any> => {
