@@ -33,7 +33,7 @@ const fetchPackageInfo = async (app: Application, prefix: string, moduleName: st
 };
 
 const installToServer = async (app: Application, moduleName: string): Promise<void> => {
-  const rcStatus = await getRuntimeConfigStatus(app.workDir);
+  const rcStatus = getRuntimeConfigStatus(app.workDir);
   const rc = await getRuntimeConfig(rcStatus);
   if (!rc) {
     app.logger.error('Cannot find configuration file for tigo.');

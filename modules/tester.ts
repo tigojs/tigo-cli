@@ -32,7 +32,7 @@ const mount = async (app: Application, program: commander.Command): Promise<void
         };
         application = new Proxy(app, handler);
       }
-      const rcStatus = await getRuntimeConfigStatus(opts.workDir || app.workDir);
+      const rcStatus = getRuntimeConfigStatus(opts.workDir || app.workDir);
       const rc = await getRuntimeConfig(rcStatus);
       if (!rc) {
         app.logger.error('Cannot get the runtime config in the work directory.');
