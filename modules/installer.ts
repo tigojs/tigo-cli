@@ -103,7 +103,7 @@ const installToLambdaEnv = async (app: Application, moduleName: string): Promise
 
 const mount = async (app: Application, program: commander.Command): Promise<void> => {
   program
-    .command('add <moduleName>')
+    .command('add <module>')
     .alias('install')
     .description('Add official module to tigo server')
     .action(async (moduleName: string) => {
