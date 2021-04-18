@@ -67,7 +67,12 @@ const installToServer = async (app: Application, moduleName: string): Promise<vo
   // install module
   const { version } = pkg;
   app.logger.debug(`Detected version v${version}, start installing...`);
-  child_process.execSync(`npm install ${repoName}`, { stdio: 'inherit' });
+  try {
+    child_process.execSync(`npm install ${repoName}`, { stdio: 'inherit' });
+  } catch {
+    app.logger.error('Failed to install the package.');
+    return process.exit(-10516);
+  }
   app.logger.debug('Module package has been successfully installed.');
   // build config
   if (rc.plugins[moduleName]) {
@@ -97,7 +102,12 @@ const installToLambdaEnv = async (app: Application, moduleName: string): Promise
   const { pkg, repoName } = await fetchPackageInfo(app, '@tigojs/', moduleName);
   const { version } = pkg;
   app.logger.debug(`Detected version v${version}, start installing...`);
-  child_process.execSync(`npm install ${repoName}`, { stdio: 'inherit' });
+  try {
+    child_process.execSync(`npm install ${repoName}`, { stdio: 'inherit' });
+  } catch {
+    app.logger.error('Failed to install the package.');
+    return process.exit(-10517);
+  }
   app.logger.info(`Lambda package [${repoName}] has been installed successfully.`);
 };
 

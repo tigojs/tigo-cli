@@ -46,7 +46,12 @@ const upgradeModule = async (app: Application, moduleName: string): Promise<void
     app.logger.info('Module on the server is the latest version.');
     return;
   }
-  child_process.execSync(`npm install ${packageName} --save`, { stdio: 'inherit' });
+  try {
+    child_process.execSync(`npm install ${packageName} --save`, { stdio: 'inherit' });
+  } catch {
+    app.logger.error('Failed to install the package.');
+    return process.exit(-10518);
+  }
   app.logger.info('Module has been upgraded.');
 };
 
@@ -84,7 +89,7 @@ const upgradeFramework = async (app: Application): Promise<void> => {
       sources.forEach((src) => {
         if (shelljs.mv(path.resolve(extractTargetDir, `./package/${src}`), app.workDir).code !== 0) {
           app.logger.error('Unable to overwrite the server files.');
-          return process.exit(-10510);
+          return process.exit(-10511);
         }
       });
       resolve();
@@ -101,22 +106,42 @@ const upgradeFramework = async (app: Application): Promise<void> => {
     if (packageInfo.dependencies[pkgName]) {
       if (compareVersions.compare(formatVersion(remoteInfo.dependencies[pkgName]), formatVersion(packageInfo.dependencies[pkgName]), '>')) {
         app.logger.debug(`Starting to install ${pkgName}...`);
-        child_process.execSync(`npm install ${pkgName}@latest --save`, { stdio: 'inherit' });
+        try {
+          child_process.execSync(`npm install ${pkgName}@latest --save`, { stdio: 'inherit' });
+        } catch {
+          app.logger.error('Failed to install the new package.');
+          return process.exit(-10519);
+        }
       }
     } else {
       app.logger.debug(`Starting to install ${pkgName}...`);
-      child_process.execSync(`npm install ${pkgName}@latest --save`, { stdio: 'inherit' });
+      try {
+        child_process.execSync(`npm install ${pkgName}@latest --save`, { stdio: 'inherit' });
+      } catch {
+        app.logger.error('Failed to install the new package.');
+        return process.exit(-10519);
+      }
     }
   });
   devDependencyPackages.forEach((pkgName) => {
     if (packageInfo.devDependencies[pkgName]) {
       if (compareVersions.compare(formatVersion(remoteInfo.devDependencies[pkgName]), formatVersion(packageInfo.devDependencies[pkgName]), '>')) {
         app.logger.debug(`Starting to install ${pkgName}...`);
-        child_process.execSync(`npm install ${pkgName}@latest --save-dev`, { stdio: 'inherit' });
+        try {
+          child_process.execSync(`npm install ${pkgName}@latest --save-dev`, { stdio: 'inherit' });
+        } catch {
+          app.logger.error('Failed to install the new package.');
+          return process.exit(-10519);
+        }
       }
     } else {
       app.logger.debug(`Starting to install ${pkgName}...`);
-      child_process.execSync(`npm install ${pkgName}@latest --save-dev`, { stdio: 'inherit' });
+      try {
+        child_process.execSync(`npm install ${pkgName}@latest --save-dev`, { stdio: 'inherit' });
+      } catch {
+        app.logger.error('Failed to install the new package.');
+        return process.exit(-10519);
+      }
     }
   });
   // modify the package.json

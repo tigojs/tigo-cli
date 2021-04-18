@@ -73,7 +73,7 @@ export const downloadFrameworkPack = async (app: Application, packageInfo?: unkn
   const downloadedShaSum = await getFileShaSum(tempSavePath);
   if (downloadedShaSum !== shasum) {
     app.logger.error('Package hash mismatch.');
-    return process.exit(-10510);
+    return process.exit(-10512);
   }
   return { packPath: tempSavePath };
 };

@@ -50,7 +50,12 @@ const initializeLambdaEnv = async (app: Application) => {
   }
   // clone repo
   app.logger.debug('Downloading repository...');
-  child_process.execSync('git clone -b main https://github.com/tigojs/tigo-lambda-template.git --depth 1', { stdio: 'inherit' });
+  try {
+    child_process.execSync('git clone -b main https://github.com/tigojs/tigo-lambda-template.git --depth 1', { stdio: 'inherit' });
+  } catch {
+    app.logger.error('Failed to clone the repository.');
+    return process.exit(-10514);
+  }
   app.logger.info('Repository downloaded.');
   const { code: mvCode } = shelljs.mv('./tigo-lambda-template/*', './tigo-lambda-template/.*', './');
   if (mvCode !== 0) {
@@ -64,7 +69,12 @@ const initializeLambdaEnv = async (app: Application) => {
   }
   // install dependencies
   app.logger.debug('Start installing dependencies...');
-  child_process.execSync('npm install', { stdio: 'inherit' });
+  try {
+    child_process.execSync('npm install', { stdio: 'inherit' });
+  } catch {
+    app.logger.error('Failed to install the dependencies.');
+    return process.exit(-10515);
+  }
   app.logger.info('Dependencies installed.');
   // init dev env config
   const config = getConfig() || {};
@@ -192,7 +202,9 @@ const mount = (app: Application, program: commander.Command): void => {
           child_process.execSync('npm install', { stdio: 'inherit' });
         } catch {
           app.logger.error('Fail to install the dependecies of tigo server.');
+          return process.exit(-10513);
         }
+        app.logger.info('Dependencies installed.');
         await initializeServerConfig(app);
         app.logger.info('All things done, your tigo server is ready.');
       } else if (type === 'server-config') {
