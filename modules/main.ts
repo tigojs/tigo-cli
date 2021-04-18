@@ -4,6 +4,7 @@ import Upgrader from './upgrader';
 import Config from './config';
 import Show from './show';
 import RC from './rc';
+import Tester from './tester';
 
 export default [
   Initializer,
@@ -12,4 +13,5 @@ export default [
   Config,
   Show,
   RC,
+  Tester,
 ];
