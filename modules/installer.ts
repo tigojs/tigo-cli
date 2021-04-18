@@ -24,7 +24,7 @@ interface postInstallThis {
     write: (status: RuntimeConfigStatus, rc: RuntimeConfig) => void;
   };
   getPluginConfig: (name: string) => unknown;
-  updateRuntimeConfig: (name: string, operation: (config: unknown) => void) => void;
+  updatePluginConfig: (name: string, operation: (config: unknown) => void) => void;
   saveRuntimeConfig: () => void;
 }
 
@@ -56,8 +56,7 @@ const buildPostInstallThisArg = (app: Application, rcStatus: RuntimeConfigStatus
       write: writeRuntimeConfig,
     },
     getPluginConfig,
-    saveRuntimeConfig,
-    updateRuntimeConfig: (name, operation): void => {
+    updatePluginConfig: (name, operation): void => {
       const config = getPluginConfig(name);
       if (config) {
         if (typeof operation === 'function') {
@@ -69,6 +68,7 @@ const buildPostInstallThisArg = (app: Application, rcStatus: RuntimeConfigStatus
         app.logger.error('Cannot get the content of runtime config, please set your manually.');
       }
     },
+    saveRuntimeConfig,
   };
 };
 
