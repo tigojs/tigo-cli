@@ -6,9 +6,9 @@ import { Application } from './interface/application';
 import { checkEnvironment } from './utils/env';
 import { app } from './app';
 import { setStore } from './utils/store';
+import { version } from './package.json';
 
 const program = new commander.Command();
-const version = '0.3.1';
 
 program.name('tigo');
 program.version(version);

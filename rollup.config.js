@@ -1,5 +1,6 @@
 import { babel } from '@rollup/plugin-babel';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
+import json from '@rollup/plugin-json';
 import fs from 'fs';
 
 const pkg = JSON.parse(fs.readFileSync('./package.json'));
@@ -20,6 +21,7 @@ export default {
       extensions,
       modulesOnly: true,
     }),
+    json(),
     babel({
       exclude: ['node_modules/**', './history/**'],
       babelHelpers: 'bundled',
