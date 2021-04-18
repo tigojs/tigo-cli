@@ -8,7 +8,7 @@ import { app } from './app';
 import { setStore } from './utils/store';
 
 const program = new commander.Command();
-const version = '0.2.0';
+const version = '0.2.2';
 
 program.name('tigo');
 program.version(version);
