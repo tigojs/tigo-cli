@@ -44,7 +44,15 @@ const mount = async (app: Application, program: commander.Command): Promise<void
           current[k] = {};
         }
         if (keys.length === 0) {
-          current[k] = /^(\+|-)?\d+.?(\d+)?$/.test(value) ? parseFloat(value) : value;
+          if (/^(\+|-)?\d+.?(\d+)?$/.test(value)) {
+            current[k] = parseFloat(value);
+          } else if (value === 'true') {
+            current[k] = true;
+          } else if (value === 'false') {
+            current[k] = false;
+          } else {
+            current[k] = value;
+          }
         }
         current = obj;
       }
