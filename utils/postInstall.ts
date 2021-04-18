@@ -32,10 +32,25 @@ export const buildPostInstallThisArg = (app: Application, rcStatus: RuntimeConfi
     const installedPlugins = Object.keys(rc.plugins);
     for (const pluginName of installedPlugins) {
       if (rc.plugins[pluginName].package === name) {
-        return rc.plugins[pluginName].config || {};
+        if (!rc.plugins[pluginName].config) {
+          rc.plugins[pluginName].config = {};
+        }
+        return rc.plugins[pluginName].config;
       }
     }
     return null;
+  };
+  const updatePluginConfig = (name, operation): void => {
+    const config = getPluginConfig(name);
+    if (config) {
+      if (typeof operation === 'function') {
+        operation(config);
+      }
+      saveRuntimeConfig();
+      app.logger.info('Runtime config has been updated.');
+    } else {
+      app.logger.error('Cannot get the content of runtime config, please set your manually.');
+    }
   };
   const saveRuntimeConfig = (): void => {
     writeRuntimeConfig(rcStatus, rc);
@@ -52,18 +67,7 @@ export const buildPostInstallThisArg = (app: Application, rcStatus: RuntimeConfi
       write: writeRuntimeConfig,
     },
     getPluginConfig,
-    updatePluginConfig: (name, operation): void => {
-      const config = getPluginConfig(name);
-      if (config) {
-        if (typeof operation === 'function') {
-          operation(config);
-        }
-        saveRuntimeConfig();
-        app.logger.info('Runtime config has been updated.');
-      } else {
-        app.logger.error('Cannot get the content of runtime config, please set your manually.');
-      }
-    },
+    updatePluginConfig,
     saveRuntimeConfig,
   };
 };
