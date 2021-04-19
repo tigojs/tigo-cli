@@ -31,6 +31,8 @@ interface FormattedChoice {
   value: string;
 }
 
+const IGNORE_LIST = ['@tigojs/utils', '@tigojs/core']
+
 const npm = new NpmApi();
 
 const upgradeModule = async (app: Application, moduleName: string): Promise<void> => {
@@ -186,7 +188,7 @@ const checkUpdates = async (app: Application): Promise<void> => {
   const dependencies = Object.keys(packageInfo.dependencies);
   const officials = <Array<DependencyInfo>>[];
   dependencies.forEach((dependency) => {
-    if (dependency.startsWith('@tigojs/')) {
+    if (dependency.startsWith('@tigojs/') && !IGNORE_LIST.includes(dependency)) {
       officials.push({
         name: dependency,
         version: formatVersion(packageInfo.dependencies[dependency]),
