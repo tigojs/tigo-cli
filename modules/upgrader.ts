@@ -110,7 +110,7 @@ const upgradeFramework = async (app: Application): Promise<void> => {
   const moveFiles = (sources) => {
     return new Promise<void>((resolve) => {
       sources.forEach((src) => {
-        if (shelljs.mv(path.resolve(extractTargetDir, `./package/${src}`), app.workDir).code !== 0) {
+        if (shelljs.cp('-rf', path.resolve(extractTargetDir, `./package/${src[0]}`), path.resolve(app.workDir, `./${src[1]}`)).code !== 0) {
           app.logger.error('Unable to overwrite the server files.');
           return process.exit(-10511);
         }
@@ -119,7 +119,11 @@ const upgradeFramework = async (app: Application): Promise<void> => {
     });
   };
   // move files
-  await moveFiles(['server.js', 'src', 'scripts']);
+  await moveFiles([['server.js', ''], ['src/*', 'src'], ['scripts/*', 'scripts']]);
+  // try to remove tempdir
+  if (shelljs.rm('-rf', extractTargetDir).code !== 0) {
+    app.logger.warn('Failed to remove temp folder.');
+  }
   app.logger.debug('Files are upgraded, starting to process the dependencies...');
   // check dependencies
   const { dependencies, devDependencies } = remoteInfo;

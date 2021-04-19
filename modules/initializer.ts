@@ -57,15 +57,12 @@ const initializeLambdaEnv = async (app: Application) => {
     return process.exit(-10514);
   }
   app.logger.info('Repository downloaded.');
-  const { code: mvCode } = shelljs.mv('./tigo-lambda-template/*', './tigo-lambda-template/.*', './');
-  if (mvCode !== 0) {
+  if (shelljs.cp('-rf', ['./tigo-lambda-template/*', './tigo-lambda-template/.*'], './').code !== 0) {
     app.logger.error('Cannot move repository files.');
     return process.exit(-10501);
   }
-  const { code: rmCode } = shelljs.rm('-rf', './tigo-lambda-template');
-  if (rmCode !== 0) {
-    app.logger.error('Remove temp folder failed.');
-    return process.exit(-10502);
+  if (shelljs.rm('-rf', './tigo-lambda-template').code !== 0) {
+    app.logger.warn('Failed to remove temp folder.');
   }
   // install dependencies
   app.logger.debug('Start installing dependencies...');
@@ -186,15 +183,12 @@ const mount = (app: Application, program: commander.Command): void => {
           packPath,
           targetPath: app.workDir,
         });
-        const { code: mvCode } = shelljs.mv('./package/*', './');
-        if (mvCode !== 0) {
+        if (shelljs.cp('-rf', './package/*', './').code !== 0) {
           app.logger.error('Move server files failed.');
           return process.exit(-10503);
         }
-        const { code: rmCode } = shelljs.rm('-rf', './package');
-        if (rmCode !== 0) {
-          app.logger.error('Remove temp folder failed.');
-          return process.exit(-10504);
+        if (shelljs.rm('-rf', './package').code !== 0) {
+          app.logger.warn('Failed to remove temp folder.');
         }
         // run npm install
         app.logger.info('Package extracted, starting to install dependencies...');
