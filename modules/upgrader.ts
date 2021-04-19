@@ -119,7 +119,7 @@ const upgradeFramework = async (app: Application): Promise<void> => {
     });
   };
   // move files
-  await moveFiles(['server.js', 'src/*', 'scripts/*']);
+  await moveFiles(['server.js', 'src', 'scripts']);
   app.logger.debug('Files are upgraded, starting to process the dependencies...');
   // check dependencies
   const { dependencies, devDependencies } = remoteInfo;
