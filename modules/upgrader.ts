@@ -242,7 +242,7 @@ const checkUpdates = async (app: Application): Promise<void> => {
     {
       type: 'checkbox',
       name: 'selected',
-      message: 'Select the package you want to upgrade:',
+      message: 'Select the packages you want to upgrade:',
       choices: choices.map((item) => {
         return {
           name: names.shift(),
