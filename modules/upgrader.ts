@@ -287,7 +287,7 @@ const checkUpdates = async (app: Application): Promise<void> => {
   }
   app.logger.debug('Starting to install the latest version...');
   try {
-    child_process.execSync(`npm install ${answer.selected.join(' ')} --save`, { stdio: 'inherit' });
+    child_process.execSync(`npm install ${answer.selected.map((p: string) => `${p}@latest`).join(' ')} --save`, { stdio: 'inherit' });
   } catch {
     app.logger.error('Failed to install the new modules.');
     return;
