@@ -39,9 +39,9 @@ const mount = async (app: Application, program: commander.Command): Promise<void
           console.error(chalk.red('Cannot get the specific configuration item from .tigorc.'));
           return;
         }
-        const obj = current[k];
+        let obj = current[k];
         if (!obj && keys.length > 0) {
-          current[k] = {};
+          obj = current[k] = {};
         }
         if (keys.length === 0) {
           if (/^(\+|-)?\d+.?(\d+)?$/.test(value)) {
