@@ -1,5 +1,6 @@
 import path from 'path';
 import fs from 'fs';
+import fsp from 'fs/promises';
 import commander from 'commander';
 import child_process from 'child_process';
 import NpmApi from 'npm-api';
@@ -31,7 +32,8 @@ interface FormattedChoice {
   value: string;
 }
 
-const IGNORE_LIST = ['@tigojs/utils', '@tigojs/core']
+const IGNORE_LIST = ['@tigojs/utils', '@tigojs/core'];
+const IGNORE_ROOT_FILES = ['.tigorc.json', '.tigorc.js', 'package.json', 'package-lock.json'];
 
 const npm = new NpmApi();
 
@@ -78,13 +80,34 @@ const upgradeModule = async (app: Application, moduleName: string): Promise<void
   app.logger.info('Module has been upgraded.');
 };
 
+const collectRootFiles = async (rootDir: string): Promise<Array<Array<string>>> => {
+  const packageDir = path.resolve(rootDir, './package');
+  const dirFiles = await fsp.readdir(packageDir);
+  const collection: Array<Array<string>> = [];
+  await Promise.all(dirFiles.map(async (filename) => {
+    return new Promise<void>(async (resolve) => {
+      const filePath = path.resolve(packageDir, filename);
+      const stat = await fsp.stat(filePath);
+      if (stat.isDirectory()) {
+        return resolve();
+      }
+      if (IGNORE_ROOT_FILES.includes(filename)) {
+        return resolve();
+      }
+      collection.push([filename, './']);
+      resolve();
+    });
+  }));
+  return collection;
+};
+
 const upgradeFramework = async (app: Application): Promise<void> => {
   const packageInfoPath = path.resolve(app.workDir, './package.json');
   if (!fs.existsSync(packageInfoPath)) {
     app.logger.error('Cannot find "package.json" in the current directory.');
     return process.exit(-10507);
   }
-  const packageInfo = JSON.parse(fs.readFileSync(packageInfoPath, { encoding: 'utf-8' }));
+  const packageInfo = JSON.parse(await fsp.readFile(packageInfoPath, { encoding: 'utf-8' }));
   const repo = npm.repo('tigo');
   let remoteInfo;
   try {
@@ -119,7 +142,8 @@ const upgradeFramework = async (app: Application): Promise<void> => {
     });
   };
   // move files
-  await moveFiles([['server.js', ''], ['src/*', 'src'], ['scripts/*', 'scripts']]);
+  const toMove = [['src/*', 'src'], ['scripts/*', 'scripts']].concat(await collectRootFiles(extractTargetDir));
+  await moveFiles(toMove);
   // try to remove tempdir
   if (shelljs.rm('-rf', extractTargetDir).code !== 0) {
     app.logger.warn('Failed to remove temp folder.');
