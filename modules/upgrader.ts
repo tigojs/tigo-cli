@@ -282,6 +282,7 @@ const checkUpdates = async (app: Application): Promise<void> => {
     },
   ]);
   if (!answer.selected.length) {
+    app.logger.warn('You have not selected any packages, the program has exited.');
     return;
   }
   app.logger.debug('Starting to install the latest version...');
