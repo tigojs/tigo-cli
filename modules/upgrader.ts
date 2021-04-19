@@ -174,6 +174,9 @@ const upgradeFramework = async (app: Application): Promise<void> => {
   if (remoteInfo.engines) {
     afterInstalled.engines = remoteInfo.engines;
   }
+  if (remoteInfo.scripts) {
+    afterInstalled.scripts = remoteInfo.scripts;
+  }
   fs.writeFileSync(packageInfoPath, JSON.stringify(afterInstalled, null, '  '), { encoding: 'utf-8' });
   app.logger.info('Framework has been upgraded.');
 };
