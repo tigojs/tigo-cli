@@ -13,8 +13,6 @@ const program = new commander.Command();
 program.name('tigo');
 program.version(version);
 
-console.log(chalk.hex('#f16d41')(`tigo-cli ${version}\nDeveloped by BackRunner`));
-
 // env check
 if (!app.store.envCheckPassed) {
   console.log(chalk.blue('Checking environment...'));

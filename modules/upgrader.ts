@@ -5,10 +5,31 @@ import child_process from 'child_process';
 import NpmApi from 'npm-api';
 import compareVersions from 'compare-versions';
 import shelljs from 'shelljs';
+import inquirer from 'inquirer';
+import chalk from 'chalk';
+import table from 'text-table';
 import { Application } from '../interface/application';
 import { checkServerDir } from '../utils/env';
 import { downloadFrameworkPack, extractFrameworkPack } from '../utils/framework';
 import { formatVersion } from '../utils/version';
+
+interface DependencyInfo {
+  name: string;
+  version: string;
+  remoteVersion?: string;
+}
+
+interface Choice {
+  name: Array<string>;
+  short: string;
+  value: string;
+}
+
+interface FormattedChoice {
+  name: string;
+  short: string;
+  value: string;
+}
 
 const npm = new NpmApi();
 
@@ -155,6 +176,91 @@ const upgradeFramework = async (app: Application): Promise<void> => {
   app.logger.info('Framework has been upgraded.');
 };
 
+const checkUpdates = async (app: Application): Promise<void> => {
+  const packageInfoPath = path.resolve(app.workDir, './package.json');
+  if (!fs.existsSync(packageInfoPath)) {
+    app.logger.error('Cannot find "package.json" in the current directory.');
+    return process.exit(-10506);
+  }
+  const packageInfo = JSON.parse(fs.readFileSync(packageInfoPath, { encoding: 'utf-8' }));
+  const dependencies = Object.keys(packageInfo.dependencies);
+  const officials = <Array<DependencyInfo>>[];
+  dependencies.forEach((dependency) => {
+    if (dependency.startsWith('@tigojs/')) {
+      officials.push({
+        name: dependency,
+        version: formatVersion(packageInfo.dependencies[dependency]),
+      });
+    }
+  });
+  if (!officials.length) {
+    app.logger.error('Cannot find any installed official modules.');
+    return process.exit(-10408);
+  }
+  await Promise.all(
+    officials.map((pkg, index) => {
+      return new Promise<void>(async (resolve, reject) => {
+        const repo = npm.repo(pkg.name);
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const pkg = <any>await repo.package();
+          officials[index].remoteVersion = formatVersion(pkg.version);
+          resolve();
+        } catch (err) {
+          reject(err);
+        }
+      });
+    })
+  );
+  // display update info
+  const choices = officials
+    .map((pkg) => {
+      if (!pkg.remoteVersion) {
+        return null;
+      }
+      if (compareVersions.compare(pkg.remoteVersion, pkg.version, '<=')) {
+        return null;
+      }
+      return {
+        name: [pkg.name, chalk.cyanBright(pkg.version), chalk.white('❯'), chalk.green(chalk.bold(pkg.remoteVersion))],
+        short: pkg.name,
+        value: <string>pkg.name,
+      };
+    })
+    .filter((item) => !!item) as Array<Choice>;
+  if (!choices.length) {
+    app.logger.info("The official packages you've installed are all up-to-date.");
+    return;
+  }
+  const names = table(choices.map((item) => item.name)).split('\n');
+  const answer = await inquirer.prompt([
+    {
+      type: 'checkbox',
+      name: 'selected',
+      message: 'Select the package you want to upgrade:',
+      choices: choices.map((item) => {
+        return {
+          name: names.shift(),
+          short: item.short,
+          value: item.value,
+        } as FormattedChoice;
+      }),
+      pageSize: process.stdout.rows - 2,
+    },
+  ]);
+  if (!answer.selected.length) {
+    return;
+  }
+  app.logger.debug('Starting to install the latest version...');
+  try {
+    child_process.execSync(`npm install ${answer.selected.join(' ')} --save`, { stdio: 'inherit' });
+  } catch {
+    app.logger.error('Failed to install the new modules.');
+    return;
+  }
+  app.logger.info('Modules has been upgraded.');
+};
+
 const mount = (app: Application, program: commander.Command): void => {
   program
     .command('upgrade <module>')
@@ -173,6 +279,13 @@ const mount = (app: Application, program: commander.Command): void => {
       } else {
         await upgradeModule(app, moduleName);
       }
+    });
+  program
+    .command('check-updates')
+    .description('Check the updates for installed official modules.')
+    .action(async () => {
+      app.logger.debug('Starting to check updates...');
+      await checkUpdates(app);
     });
 };
 
