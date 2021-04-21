@@ -6,7 +6,7 @@ import inquirer from 'inquirer';
 import { Application } from '../interface/application';
 import { checkGit, getDevConfig, getRuntimeConfigStatus, writeRuntimeConfig } from '../utils/env';
 import { RuntimeConfig } from '../interface/rc';
-import { getConfig } from '../utils/config';
+import { getConfig, updateConfigItem } from '../utils/config';
 import { parseHost } from '../utils/host';
 import { downloadFrameworkPack, extractFrameworkPack } from '../utils/framework';
 
@@ -200,6 +200,9 @@ const mount = (app: Application, program: commander.Command): void => {
         }
         app.logger.info('Dependencies installed.');
         await initializeServerConfig(app);
+        // save tigo server dir to cli config
+        updateConfigItem('server_dir', app.workDir);
+        app.logger.info('Server directory record in cli config hass been updated.');
         app.logger.info('All things done, your tigo server is ready.');
       } else if (type === 'server-config') {
         await initializeServerConfig(app);
