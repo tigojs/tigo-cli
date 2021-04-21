@@ -1,10 +1,11 @@
 import shelljs from 'shelljs';
 import path from 'path';
 import fs from 'fs';
-import { LambdaDevConfig, RuntimeConfig, RuntimeConfigStatus } from '../interface/rc';
-import { Application } from '../interface/application';
 import prettier from 'prettier';
 import chalk from 'chalk';
+import { LambdaDevConfig, RuntimeConfig, RuntimeConfigStatus } from '../interface/rc';
+import { Application } from '../interface/application';
+import { updateConfigItem } from './config';
 
 interface EnvCheckOptions {
   minNodeVersion: number;
@@ -44,11 +45,11 @@ export const getRuntimeConfigStatus = (runtimeDir: string): RuntimeConfigStatus 
 
 export const checkServerDir = (dir: string): boolean => {
   return getRuntimeConfigStatus(dir).exists;
-}
+};
 
-async function getRuntimeConfig (workDir: string): Promise<RuntimeConfig | null>;
-async function getRuntimeConfig (status: RuntimeConfigStatus): Promise<RuntimeConfig | null>;
-async function getRuntimeConfig (arg: RuntimeConfigStatus | string): Promise<RuntimeConfig | null> {
+async function getRuntimeConfig(workDir: string): Promise<RuntimeConfig | null>;
+async function getRuntimeConfig(status: RuntimeConfigStatus): Promise<RuntimeConfig | null>;
+async function getRuntimeConfig(arg: RuntimeConfigStatus | string): Promise<RuntimeConfig | null> {
   const rcStatus: RuntimeConfigStatus = typeof arg === 'string' ? getRuntimeConfigStatus(arg) : arg;
   if (rcStatus.json.exists) {
     const rc = JSON.parse(fs.readFileSync(rcStatus.json.path, { encoding: 'utf-8' }));
@@ -64,13 +65,17 @@ export { getRuntimeConfig };
 
 export const writeRuntimeConfig = (status: RuntimeConfigStatus, config: RuntimeConfig): void => {
   if (status.js.exists) {
-    fs.writeFileSync(status.js.path, prettier.format(`module.exports = ${JSON.stringify(config)}`, {
-      tabWidth: 2,
-      useTabs: false,
-      singleQuote: true,
-      semi: true,
-      parser: 'babel',
-    }), { encoding: 'utf-8' });
+    fs.writeFileSync(
+      status.js.path,
+      prettier.format(`module.exports = ${JSON.stringify(config)}`, {
+        tabWidth: 2,
+        useTabs: false,
+        singleQuote: true,
+        semi: true,
+        parser: 'babel',
+      }),
+      { encoding: 'utf-8' }
+    );
   } else {
     // js config file does not exist, write config in json format by default
     fs.writeFileSync(status.json.path, JSON.stringify(config, null, '  '), { encoding: 'utf-8' });
@@ -105,4 +110,13 @@ export const checkGit = (): GitStatus => {
     installed: gitInstalled,
     version: gitVersion,
   };
+};
+
+export const checkPM2 = (): boolean => {
+  const pm2Test = shelljs.exec('pm2 -v', { silent: true });
+  if (pm2Test.code === 0) {
+    updateConfigItem('pm2_installed', true);
+    return true;
+  }
+  return false;
 };

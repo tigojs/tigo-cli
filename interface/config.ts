@@ -3,4 +3,5 @@ export interface CliConfig {
   access_key?: string;
   secret_key?: string;
   server_dir?: string;
+  pm2_installed?: boolean;
 }

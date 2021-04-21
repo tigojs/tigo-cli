@@ -23,6 +23,15 @@ interface FrameworkConfig {
   protectPluginInfo?: boolean;
 }
 
+interface RouterConfig {
+  internal?: {
+    base?: string;
+  };
+  external?: {
+    base?: string;
+  };
+}
+
 export interface RuntimeConfig {
   [key: string]: unknown;
   server: ServerConfig;
@@ -30,6 +39,7 @@ export interface RuntimeConfig {
   dev?: DevConfig;
   plugins?: PluginConfig;
   framework?: FrameworkConfig;
+  router?: RouterConfig;
 }
 
 export interface RuntimeConfigStatus {
@@ -45,33 +55,33 @@ export interface RuntimeConfigStatus {
 }
 
 export interface LambdaDevConfig {
-  path: string,
+  path: string;
   content: {
     devServer?: {
-      port?: number,
-      maxFileSize?: number,
-    },
+      port?: number;
+      maxFileSize?: number;
+    };
     lambda?: {
-      allowRequire?: Array<string>,
-      env?: Record<string, unknown>,
+      allowRequire?: Array<string>;
+      env?: Record<string, unknown>;
       cfs?: {
-        enable: boolean,
-      },
+        enable: boolean;
+      };
       oss?: {
-        enable: boolean,
-      },
+        enable: boolean;
+      };
       kv?: {
-        enable: boolean,
-      },
-    },
+        enable: boolean;
+      };
+    };
     rollup?: {
-      output?: string,
-    },
+      output?: string;
+    };
     deploy?: {
-      host?: string,
-      https?: boolean,
-      accessKey?: string,
-      secretKey?: string,
-    },
-  },
+      host?: string;
+      https?: boolean;
+      accessKey?: string;
+      secretKey?: string;
+    };
+  };
 }

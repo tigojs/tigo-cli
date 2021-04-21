@@ -5,6 +5,7 @@ import inquirer from 'inquirer';
 import { Application } from '../interface/application';
 import { LambdaDevConfig, RuntimeConfig } from '../interface/rc';
 import { getDevConfig, getRuntimeConfig, getRuntimeConfigStatus, writeRuntimeConfig } from '../utils/env';
+import { formatInputValue } from '../utils/string';
 
 const getRC = async (app: Application) => {
   const status = getRuntimeConfigStatus(app.workDir);
@@ -44,15 +45,7 @@ const mount = async (app: Application, program: commander.Command): Promise<void
           obj = current[k] = {};
         }
         if (keys.length === 0) {
-          if (/^(\+|-)?\d+.?(\d+)?$/.test(value)) {
-            current[k] = parseFloat(value);
-          } else if (value === 'true') {
-            current[k] = true;
-          } else if (value === 'false') {
-            current[k] = false;
-          } else {
-            current[k] = value;
-          }
+          current[k] = formatInputValue(value);
         }
         current = obj;
       }

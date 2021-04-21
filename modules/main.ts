@@ -5,6 +5,7 @@ import Remover from './remover';
 import Config from './config';
 import Show from './show';
 import RC from './rc';
+import Starter from './starter';
 import Tester from './tester';
 
 export default [
@@ -15,5 +16,6 @@ export default [
   Config,
   Show,
   RC,
+  Starter,
   Tester,
 ];

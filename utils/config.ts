@@ -23,7 +23,7 @@ export const saveConfig = (config: CliConfig): void => {
   fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, '  '), { encoding: 'utf-8' });
 };
 
-export const updateConfigItem = (key: string, value: string): void => {
+export const updateConfigItem = (key: string, value: string | boolean | number): void => {
   let config = getConfig();
   if (!config) {
     config = {};
