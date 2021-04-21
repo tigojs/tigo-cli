@@ -6,7 +6,7 @@ import { Application } from '../interface/application';
 import { getConfig, updateConfigItem } from '../utils/config';
 import { checkPM2, checkServerDir, getRuntimeConfig, getRuntimeConfigStatus } from '../utils/env';
 import { checkServerStatus } from '../utils/server';
-import { getStore, setStore } from '../utils/store';
+import { setStore } from '../utils/store';
 
 const startServerWithPM2 = async (app: Application, serverDir: string) => {
   // check ecosystem.config.js
@@ -34,9 +34,13 @@ const startServerDirectly = async (app: Application, serverDir: string) => {
   if (!rc) {
     throw new Error('Runtime config content is empty.');
   }
+  const serverMainPath = path.resolve(serverDir, './server.js');
+  if (!fs.existsSync(serverMainPath)) {
+    throw new Error('Cannot locate the main file of tigo server.');
+  }
   const spawn = () => {
     return new Promise<void>(async (resolve, reject) => {
-      const serverSpawn = child_process.spawn('node', ['./server.js'], {
+      const serverSpawn = child_process.spawn('node', [serverMainPath], {
         detached: true,
         stdio: ['ignore', 'ignore', 'ignore'],
         env: {
