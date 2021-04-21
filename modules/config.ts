@@ -1,6 +1,7 @@
 import commander from 'commander';
+import toSnakeCase from 'to-snake-case';
 import { Application } from '../interface/application';
-import { getConfig, saveConfig } from '../utils/config';
+import { getConfig, updateConfigItem } from '../utils/config';
 
 const mount = (app: Application, program: commander.Command): void => {
   const cmd = program
@@ -10,14 +11,7 @@ const mount = (app: Application, program: commander.Command): void => {
     .command('set <key> <value>')
     .description('Set configuration for cli.')
     .action(async ({ key, value }) => {
-      let config = getConfig();
-      if (!config) {
-        config = {};
-      }
-      Object.assign(config, {
-        [key]: value,
-      });
-      saveConfig(config);
+      updateConfigItem(toSnakeCase(key), value);
       app.logger.info('Configuration saved.');
     });
   cmd

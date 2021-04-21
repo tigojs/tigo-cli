@@ -1,5 +1,6 @@
 export interface CliConfig {
-  host?: string,
-  access_key?: string,
-  secret_key?: string,
+  host?: string;
+  access_key?: string;
+  secret_key?: string;
+  server_dir?: string;
 }

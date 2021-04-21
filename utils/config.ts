@@ -16,9 +16,20 @@ export const getConfig = (): CliConfig | null => {
   if (!fs.existsSync(CONFIG_PATH)) {
     return null;
   }
-  return <CliConfig> JSON.parse(fs.readFileSync(CONFIG_PATH, { encoding: 'utf-8' }));
+  return <CliConfig>JSON.parse(fs.readFileSync(CONFIG_PATH, { encoding: 'utf-8' }));
 };
 
 export const saveConfig = (config: CliConfig): void => {
   fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, '  '), { encoding: 'utf-8' });
+};
+
+export const updateConfigItem = (key: string, value: string): void => {
+  let config = getConfig();
+  if (!config) {
+    config = {};
+  }
+  Object.assign(config, {
+    [key]: value,
+  });
+  saveConfig(config);
 };
