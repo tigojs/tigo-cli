@@ -263,8 +263,8 @@ const mount = async (app: Application, program: commander.Command): Promise<void
     .description('Restart the tigo server.')
     .action(async () => {
       const { serverDir } = getServerDir(app);
-      const { lastRunType, lastRunPid } = app.store;
-      if (lastRunType && lastRunPid) {
+      const { lastRunType } = app.store;
+      if (lastRunType) {
         // stop the server first, the start it
         await stopServer(app, serverDir);
       } else {
