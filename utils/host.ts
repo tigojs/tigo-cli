@@ -3,7 +3,7 @@ interface Host {
   host: string,
 }
 
-export const parseHost = (host: string) => {
+export const parseHost = (host: string): Host => {
   const ret: Host = {
     https: host.startsWith('https'),
     host,
