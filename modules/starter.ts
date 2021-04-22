@@ -179,6 +179,8 @@ const stopServer = async (app: Application, serverDir: string) => {
       }
       stopServerDirectly(app, lastRunPid);
     }
+    // purge stored items
+    setStore(app.store, ['lastRunPid', 'lastRunType'], null);
   } catch (err) {
     if (err.message) {
       app.logger.error(err.message);
@@ -261,11 +263,16 @@ const mount = async (app: Application, program: commander.Command): Promise<void
     .description('Restart the tigo server.')
     .action(async () => {
       const { serverDir } = getServerDir(app);
-      // stop the server first, the start it
-      await stopServer(app, serverDir);
-      const { lastRunType } = app.store;
+      const { lastRunType, lastRunPid } = app.store;
+      if (lastRunType && lastRunPid) {
+        // stop the server first, the start it
+        await stopServer(app, serverDir);
+      } else {
+        app.logger.warn('Unable to find the last run information, skipping the process of stopping the server.')
+      }
       // start the server
       await startServer(app, lastRunType || 'directly', serverDir);
+      app.logger.info('Server has been restarted.');
     });
 };
 

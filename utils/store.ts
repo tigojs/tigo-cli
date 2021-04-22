@@ -21,7 +21,13 @@ export const getStore = (): CliStore => {
   }
 };
 
-export const setStore = (store: CliStore, key: string, value: unknown): void => {
-  store[key] = value;
+export const setStore = (store: CliStore, key: string | Array<string>, value: unknown): void => {
+  if (Array.isArray(key)) {
+    key.forEach((k) => {
+      store[k] = value;
+    });
+  } else {
+    store[key] = value;
+  }
   fs.writeFileSync(storePath, JSON.stringify(store), { encoding: 'utf-8' });
 };
