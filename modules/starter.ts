@@ -92,7 +92,7 @@ const startServerDirectly = async (app: Application, serverDir: string) => {
         reject(err);
       });
       try {
-        await checkServerStatus(app, rc)
+        await checkServerStatus(app, rc);
       } catch (err) {
         return reject(err);
       }
@@ -109,7 +109,6 @@ const startServerDirectly = async (app: Application, serverDir: string) => {
     app.logger.error('Cannot spawn the server, please start it manually.');
     return process.exit(-100521);
   }
-  app.logger.info('Server started.');
   setStore(app.store, 'lastRunType', 'directly');
   process.exit(0);
 };
@@ -129,7 +128,7 @@ const stopServerWithPM2 = async (app: Application, serverDir: string) => {
     app.logger.error('Cannot stop server with pm2 due to an error.');
     return process.exit(-1005103);
   }
-}
+};
 
 const stopServerDirectly = (app: Application, pid: number) => {
   try {
@@ -138,9 +137,7 @@ const stopServerDirectly = (app: Application, pid: number) => {
     app.logger.error('Failed to kill the server, please try again or stop it manually.');
     return process.exit(-1005102);
   }
-  app.logger.info('Server has been stopped.');
 };
-
 
 const startServer = async (app: Application, type: string, serverDir: string) => {
   try {
@@ -155,15 +152,21 @@ const startServer = async (app: Application, type: string, serverDir: string) =>
     } else {
       app.logger.error('Failed to start server.', err);
     }
-    process.exit(-105100);
+    return process.exit(-105100);
   }
-}
+  app.logger.info('Server started successfully.');
+};
 
-const stopServer = async (app: Application, type: string, serverDir: string) => {
+const stopServer = async (app: Application, serverDir: string) => {
+  const { lastRunType } = app.store;
+  if (!lastRunType) {
+    app.logger.warn('Failed to get the type of last run, server cannot be stopped automatically.');
+    return process.exit(0);
+  }
   try {
-    if (type === 'pm2') {
+    if (lastRunType === 'pm2') {
       await stopServerWithPM2(app, serverDir);
-    } else if (type === 'directly') {
+    } else if (lastRunType === 'directly') {
       // check if lastRunPid exists
       const { lastRunPid } = app.store;
       if (!lastRunPid) {
@@ -182,8 +185,19 @@ const stopServer = async (app: Application, type: string, serverDir: string) => 
     } else {
       app.logger.error('Failed to stop server.', err);
     }
-    process.exit(-105101);
+    return process.exit(-105101);
   }
+  app.logger.info('Server has been stopped.');
+};
+
+const getServerDir = (app: Application) => {
+  const cliConfig = getConfig();
+  const serverDir = cliConfig?.server_dir || app.workDir;
+  if (!checkServerDir(serverDir)) {
+    app.logger.error('Cannot locate the tigo server.');
+    process.exit(-10409);
+  }
+  return { serverDir, pm2Installed: cliConfig?.pm2_installed, defaultType: cliConfig?.server_default_start_type };
 };
 
 const mount = async (app: Application, program: commander.Command): Promise<void> => {
@@ -192,12 +206,7 @@ const mount = async (app: Application, program: commander.Command): Promise<void
     .option('--directly', 'Start server directly.')
     .description('Start the tigo server.')
     .action(async (opts) => {
-      const cliConfig = getConfig();
-      const serverDir = cliConfig?.server_dir || app.workDir;
-      if (!checkServerDir(serverDir)) {
-        app.logger.error('Cannot locate the tigo server.');
-        process.exit(-10409);
-      }
+      const { serverDir, pm2Installed, defaultType } = getServerDir(app);
       const serverStarted = () => {
         const { lastRunPid } = app.store;
         if (lastRunPid && checkPidExists(lastRunPid)) {
@@ -212,14 +221,19 @@ const mount = async (app: Application, program: commander.Command): Promise<void
           setStore(app.store, 'lastRunPid', null);
           return false;
         }
-      }
-      if (opts.directly) {
+      };
+      if (opts.directly || defaultType === 'directly') {
         if (serverStarted()) {
           return;
         }
         return await startServer(app, 'directly', serverDir);
       }
-      if (cliConfig?.pm2_installed) {
+      if (defaultType === 'pm2') {
+        app.logger.debug('Trying to start server with pm2...');
+        return await startServer(app, 'pm2', serverDir);
+      }
+      // default process
+      if (pm2Installed) {
         app.logger.debug('Trying to start server with pm2...');
         await startServer(app, 'pm2', serverDir);
       } else {
@@ -239,15 +253,19 @@ const mount = async (app: Application, program: commander.Command): Promise<void
     .command('stop')
     .description('Stop the tigo server.')
     .action(async () => {
-      const cliConfig = getConfig();
-      const serverDir = cliConfig?.server_dir || app.workDir;
-      // normal process
-      if (app.store.lastRunType === 'pm2') {
-        app.logger.debug('Trying to stop server with pm2...');
-        await stopServer(app, 'pm2', serverDir);
-      } else {
-        await stopServer(app, 'directly', serverDir);
-      }
+      const { serverDir } = getServerDir(app);
+      await stopServer(app, serverDir);
+    });
+  program
+    .command('restart')
+    .description('Restart the tigo server.')
+    .action(async () => {
+      const { serverDir } = getServerDir(app);
+      // stop the server first, the start it
+      await stopServer(app, serverDir);
+      const { lastRunType } = app.store;
+      // start the server
+      await startServer(app, lastRunType || 'directly', serverDir);
     });
 };
 
