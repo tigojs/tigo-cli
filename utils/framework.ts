@@ -1,13 +1,10 @@
 import path from 'path';
 import fs from 'fs';
-import chalk from 'chalk';
-import request from 'superagent';
 import NpmApi from 'npm-api';
-import progress from 'cli-progress';
 import { Application } from '../interface/application';
 import { getFileShaSum } from './hash';
-import { writeFileFromReq } from './network';
 import { extractTgz } from './pack';
+import { downloadFileWithProgress } from './network';
 
 const npm = new NpmApi();
 
@@ -52,23 +49,12 @@ export const downloadFrameworkPack = async (app: Application, packageInfo?: unkn
   }
   // download package
   app.logger.debug('Starting to download the package...');
-  const bar = new progress.SingleBar({
-    format: chalk.cyan('Downloading server package... [{bar}] {percentage}%'),
-    hideCursor: true,
-  });
-  const req = request.get(tarball);
-  bar.start(100, 0);
-  req.on('progress', (e) => {
-    bar.update(e.percent || 0);
-  });
   try {
-    await writeFileFromReq(req, tempSavePath);
+    downloadFileWithProgress(tarball, tempSavePath, 'Downloading server package... [{bar}] {percentage}%');
   } catch (err) {
-    app.logger.error('Saving package failed.', err.message || err);
+    app.logger.error('Failed to download the server package.', err.message || err);
     return process.exit(-10509);
   }
-  bar.update(bar.getTotal());
-  bar.stop();
   // check sum
   const downloadedShaSum = await getFileShaSum(tempSavePath);
   if (downloadedShaSum !== shasum) {
