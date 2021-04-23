@@ -7,6 +7,7 @@ import Show from './show';
 import RC from './rc';
 import Starter from './starter';
 import Tester from './tester';
+import CFS from './cfs';
 
 export default [
   Initializer,
@@ -18,4 +19,5 @@ export default [
   RC,
   Starter,
   Tester,
+  CFS,
 ];

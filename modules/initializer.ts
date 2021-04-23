@@ -172,7 +172,7 @@ const mount = (app: Application, program: commander.Command): void => {
     .command('init <template>')
     .description('Initialize project by using tigo templates (server, lambda)')
     .action(async (type: string) => {
-      if (!await checkWorkDir(app.workDir)) {
+      if (!(await checkWorkDir(app.workDir))) {
         return;
       }
       // check work dir

@@ -23,7 +23,7 @@ const mount = (app: Application, program: commander.Command): void => {
   cmd
     .command('set <key> <value>')
     .description('Set configuration for cli.')
-    .action(async ({ key, value }) => {
+    .action(async (key: string, value: string) => {
       const formattedKey = toSnakeCase(key);
       if (!specs[formattedKey]) {
         updateConfigItem(formattedKey, value);
