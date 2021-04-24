@@ -164,7 +164,7 @@ const deployConfig = (app: Application, fileInfo: ConfigFileInfo, deployInfo: CF
       return reject(new Error('Cannot resolve the response from server.'));
     }
     if (!res.body.success) {
-      return reject(new Error('Failed to save the content: ' + res.body.message));
+      return reject(new Error('Failed to save the content: ' + res.body.message || 'unknown error.'));
     }
     // write id
     if (action === 'add') {
