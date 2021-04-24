@@ -157,7 +157,7 @@ const deployConfig = (app: Application, fileInfo: ConfigFileInfo, deployInfo: CF
           });
       }
     } catch (err) {
-      app.logger.error(`Failed to upload configuration file: ${fileInfo.name}`, err.response?.body?.message || err);
+      app.logger.error(`Failed to upload configuration file "${fileInfo.name}": `, err.response?.body?.message || err);
       return reject(err);
     }
     if (!res || !res.body) {
