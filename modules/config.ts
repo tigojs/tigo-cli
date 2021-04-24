@@ -5,7 +5,7 @@ import { Application } from '../interface/application';
 import { getConfig, updateConfigItem } from '../utils/config';
 
 const specs = {
-  server_default_start_type: (app, key, value) => {
+  server_dir: (app, key, value) => {
     if (value === 'current') {
       return app.workDir;
     }
