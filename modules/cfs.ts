@@ -23,7 +23,7 @@ interface ConfigItems {
 const ALLOWED_TYPES = ['json', 'xml', 'yaml'];
 
 const getConfigItems = (app: Application, cliConfig: CliConfig): ConfigItems => {
-  const { host, access_key, secret_key, server_internal_base } = cliConfig;
+  const { api_host: host, access_key, secret_key, server_internal_base } = cliConfig;
   if (!host) {
     app.logger.error('Please use the cli tool to set tigo server host first.');
     return process.exit(-10410);

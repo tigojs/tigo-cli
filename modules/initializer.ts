@@ -87,8 +87,8 @@ const initializeLambdaEnv = async (app: Application) => {
       secretKey,
     });
   }
-  if (config.host) {
-    const host = parseHost(config.host);
+  if (config.api_host) {
+    const host = parseHost(config.api_host);
     if (!host.port) {
       host.port = host.https ? 443 : 80;
     }
