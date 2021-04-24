@@ -1,5 +1,5 @@
 export interface CliConfig {
-  host?: string;
+  api_host?: string;
   access_key?: string;
   secret_key?: string;
   server_default_start_type?: string;
