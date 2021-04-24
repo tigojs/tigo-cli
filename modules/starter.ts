@@ -54,6 +54,7 @@ const startServerWithPM2 = async (app: Application, serverDir: string) => {
       return await ifUseFallback(app, serverDir);
     }
   }
+  app.logger.debug('Trying to start server with pm2...');
   try {
     child_process.execSync('pm2 start', { stdio: 'inherit', cwd: serverDir });
   } catch {
@@ -121,7 +122,7 @@ const stopServerWithPM2 = async (app: Application, serverDir: string) => {
   }
   const ecosysConfig = (await import(ecosysConfigPath)).default;
   const appName = ecosysConfig.apps[0].name;
-  app.logger.debug('Trying to stop server with pm2.');
+  app.logger.debug('Trying to stop server with pm2...');
   try {
     child_process.execSync(`pm2 stop ${appName}`, { stdio: 'inherit', cwd: serverDir });
   } catch {
