@@ -43,7 +43,7 @@ const startServerWithPM2 = async (app: Application, serverDir: string) => {
     if (answer.confirm) {
       app.logger.debug('Trying to download ecosystem.config.js...');
       try {
-        downloadFileWithProgress(ECOSYS_CONFIG_URL, ecosysConfigPath);
+        await downloadFileWithProgress(ECOSYS_CONFIG_URL, ecosysConfigPath);
       } catch (err) {
         app.logger.error('Failed to download the ecosystem.config.js.', err.message || err);
         // ask user whether to use fallback

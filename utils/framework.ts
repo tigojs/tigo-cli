@@ -50,7 +50,7 @@ export const downloadFrameworkPack = async (app: Application, packageInfo?: unkn
   // download package
   app.logger.debug('Starting to download the package...');
   try {
-    downloadFileWithProgress(tarball, tempSavePath, 'Downloading server package... [{bar}] {percentage}%');
+    await downloadFileWithProgress(tarball, tempSavePath, 'Downloading server package... [{bar}] {percentage}%\n');
   } catch (err) {
     app.logger.error('Failed to download the server package.', err.message || err);
     return process.exit(-10509);

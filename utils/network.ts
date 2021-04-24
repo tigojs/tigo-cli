@@ -5,7 +5,7 @@ import progress from 'cli-progress';
 
 export const downloadFileWithProgress = async (sourceURL: string, targetPath: string, barMessage?: string): Promise<void> => {
   const bar = new progress.SingleBar({
-    format: chalk.cyan(barMessage || `Downloading file from ${sourceURL}... [{bar}] {percentage}%`),
+    format: chalk.cyan(barMessage || `Downloading file from ${sourceURL}... [{bar}] {percentage}%\n`),
     hideCursor: true,
   });
   const req = request.get(sourceURL);
