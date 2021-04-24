@@ -74,7 +74,7 @@ const initCFSDeployConfig = async (app: Application): Promise<void> => {
         secretKey,
       },
     },
-    configPath
+    app.workDir
   );
   app.logger.info('Config file initialized, please set the config files which you want deploy manually.');
 };
@@ -86,7 +86,7 @@ const showConfigContent = async (app: Application): Promise<void> => {
 };
 
 const deployConfig = (app: Application, fileInfo: ConfigFileInfo, deployInfo: CFSDeployInfo) => {
-  return new Promise<number>(async (resolve, reject) => {
+  return new Promise<void>(async (resolve, reject) => {
     let port: number;
     if (deployInfo.port) {
       port = deployInfo.port;
@@ -109,40 +109,55 @@ const deployConfig = (app: Application, fileInfo: ConfigFileInfo, deployInfo: CF
     if (!fileInfo.path) {
       return reject(new Error('File path is necessary.'));
     }
-    if (!fileInfo.name) {
-      return reject(new Error('Please set a name for the file in the deploy config.'));
-    }
     const filePath = path.resolve(app.workDir, fileInfo.path);
     if (!fs.existsSync(filePath)) {
       return reject(new Error('Cannot find the target configuration file.'));
     }
-    let type = path.extname(fileInfo.path).toLowerCase();
+    const extname = path.extname(fileInfo.path);
+    let type = extname.toLowerCase();
     if (type.length) {
       type = type.substr(1);
     }
     if (!ALLOWED_TYPES.includes(type)) {
       return reject(new Error('The file type cannot be accepted by the server.'));
     }
+    let { name: fileName } = fileInfo;
+    if (!fileName) {
+      app.logger.warn(`File name is empty, using basename by default.`);
+      fileName = path.basename(fileInfo.path, extname);
+    }
     const fileCotent = await fsp.readFile(filePath, { encoding: 'utf-8' });
     // send request
+    app.logger.debug(`Deploying ${fileName}.${type}...`);
+    const headers = {
+      Accept: 'application/json',
+    };
     let res: Response;
     try {
       if (action === 'add') {
-        res = await agent.post('/cfs/save').send({
-          action,
-          name: fileInfo.name,
-          content: Buffer.from(fileCotent, 'utf-8').toString('base64'),
-        });
+        res = await agent
+          .post('/cfs/save')
+          .set(headers)
+          .send({
+            action,
+            name: fileName,
+            type,
+            content: Buffer.from(fileCotent, 'utf-8').toString('base64'),
+          });
       } else {
-        res = await agent.post('/cfs/save').send({
-          id: fileInfo.id,
-          action,
-          name: fileInfo.name,
-          content: Buffer.from(fileCotent, 'utf-8').toString('base64'),
-        });
+        res = await agent
+          .post('/cfs/save')
+          .set(headers)
+          .send({
+            id: fileInfo.id,
+            action,
+            name: fileInfo.name,
+            type,
+            content: Buffer.from(fileCotent, 'utf-8').toString('base64'),
+          });
       }
     } catch (err) {
-      app.logger.error(`Failed to upload configuration file: ${fileInfo.name}`);
+      app.logger.error(`Failed to upload configuration file: ${fileInfo.name}`, err.response?.body?.message || err);
       return reject(err);
     }
     if (!res || !res.body) {
@@ -151,7 +166,12 @@ const deployConfig = (app: Application, fileInfo: ConfigFileInfo, deployInfo: CF
     if (!res.body.success) {
       return reject(new Error('Failed to save the content: ' + res.body.message));
     }
-    resolve(res.body.data.id);
+    // write id
+    if (action === 'add') {
+      const { id } = res.body.data;
+      fileInfo.id = id;
+    }
+    resolve();
   });
 };
 
@@ -181,7 +201,8 @@ const startDeployConfig = async (app: Application): Promise<void> => {
     app.logger.error('Failed to deploy configuration files.');
     return;
   }
-  app.logger.debug('Configuration files have been deployed.');
+  await writeCFSDeployConfig(config, app.workDir);
+  app.logger.info('Configuration files have been deployed.');
 };
 
 const mount = (app: Application, program: commander.Command): void => {
