@@ -106,8 +106,8 @@ const startServerDirectly = async (app: Application, serverDir: string) => {
   app.logger.debug('Starting the server...');
   try {
     await spawn();
-  } catch {
-    app.logger.error('Cannot spawn the server, please start it manually.');
+  } catch (err) {
+    app.logger.error('Cannot spawn the server, please start it manually.', err);
     return process.exit(-100521);
   }
   setStore(app.store, 'lastRunType', 'directly');
