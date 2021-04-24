@@ -2,21 +2,28 @@ import commander from 'commander';
 import inquirer from 'inquirer';
 import path from 'path';
 import fs from 'fs';
+import fsp from 'fs/promises';
 import chalk from 'chalk';
+import { Response } from 'superagent';
+import { getAgent } from '@tigojs/api-request';
 import { Application } from '../interface/application';
 import { getConfig } from '../utils/config';
 import { CliConfig } from '../interface/config';
 import { writeCFSDeployConfig, getCFSDeployConfig } from '../utils/cfs';
 import { parseHost } from '../utils/host';
+import { CFSDeployConfig, CFSDeployInfo, ConfigFileInfo } from '../interface/cfs';
 
 interface ConfigItems {
   host: string;
   accessKey: string;
   secretKey: string;
+  internalBase: string;
 }
 
+const ALLOWED_TYPES = ['json', 'xml', 'yaml'];
+
 const getConfigItems = (app: Application, cliConfig: CliConfig): ConfigItems => {
-  const { host, access_key, secret_key } = cliConfig;
+  const { host, access_key, secret_key, server_internal_base } = cliConfig;
   if (!host) {
     app.logger.error('Please use the cli tool to set tigo server host first.');
     return process.exit(-10410);
@@ -29,7 +36,10 @@ const getConfigItems = (app: Application, cliConfig: CliConfig): ConfigItems => 
     app.logger.error('Please use the cli tool to set Web API secret_key first.');
     return process.exit(-10411);
   }
-  return { host, accessKey: access_key, secretKey: secret_key };
+  if (!server_internal_base) {
+    app.logger.warn('Server internal base is not set, use "/api" by default.');
+  }
+  return { host, accessKey: access_key, secretKey: secret_key, internalBase: server_internal_base || '/api' };
 };
 
 const initCFSDeployConfig = async (app: Application): Promise<void> => {
@@ -52,13 +62,14 @@ const initCFSDeployConfig = async (app: Application): Promise<void> => {
     app.logger.error('Failed to get configuration of cli tool.');
     return process.exit(-10518);
   }
-  const { host, accessKey, secretKey } = getConfigItems(app, cliConfig);
+  const { host, accessKey, secretKey, internalBase } = getConfigItems(app, cliConfig);
   const parsedHost = parseHost(host);
   await writeCFSDeployConfig(
     {
       deploy: {
         host: parsedHost.host,
         https: parsedHost.https,
+        base: internalBase,
         accessKey,
         secretKey,
       },
@@ -74,6 +85,105 @@ const showConfigContent = async (app: Application): Promise<void> => {
   return;
 };
 
+const deployConfig = (app: Application, fileInfo: ConfigFileInfo, deployInfo: CFSDeployInfo) => {
+  return new Promise<number>(async (resolve, reject) => {
+    let port: number;
+    if (deployInfo.port) {
+      port = deployInfo.port;
+    } else {
+      port = deployInfo.https ? 443 : 80;
+    }
+    const { accessKey: ak, secretKey: sk } = deployInfo;
+    if (!ak || !sk) {
+      return reject(new Error('Necessary access key or secret is wrong.'));
+    }
+    const agent = getAgent({
+      host: deployInfo.host,
+      port,
+      https: deployInfo.https,
+      base: deployInfo.base,
+      ak,
+      sk,
+    });
+    const action = fileInfo.id ? 'edit' : 'add';
+    if (!fileInfo.path) {
+      return reject(new Error('File path is necessary.'));
+    }
+    if (!fileInfo.name) {
+      return reject(new Error('Please set a name for the file in the deploy config.'));
+    }
+    const filePath = path.resolve(app.workDir, fileInfo.path);
+    if (!fs.existsSync(filePath)) {
+      return reject(new Error('Cannot find the target configuration file.'));
+    }
+    let type = path.extname(fileInfo.path).toLowerCase();
+    if (type.length) {
+      type = type.substr(1);
+    }
+    if (!ALLOWED_TYPES.includes(type)) {
+      return reject(new Error('The file type cannot be accepted by the server.'));
+    }
+    const fileCotent = await fsp.readFile(filePath, { encoding: 'utf-8' });
+    // send request
+    let res: Response;
+    try {
+      if (action === 'add') {
+        res = await agent.post('/cfs/save').send({
+          action,
+          name: fileInfo.name,
+          content: Buffer.from(fileCotent, 'utf-8').toString('base64'),
+        });
+      } else {
+        res = await agent.post('/cfs/save').send({
+          id: fileInfo.id,
+          action,
+          name: fileInfo.name,
+          content: Buffer.from(fileCotent, 'utf-8').toString('base64'),
+        });
+      }
+    } catch (err) {
+      app.logger.error(`Failed to upload configuration file: ${fileInfo.name}`);
+      return reject(err);
+    }
+    if (!res || !res.body) {
+      return reject(new Error('Cannot resolve the response from server.'));
+    }
+    if (!res.body.success) {
+      return reject(new Error('Failed to save the content: ' + res.body.message));
+    }
+    resolve(res.body.data.id);
+  });
+};
+
+const startDeployConfig = async (app: Application): Promise<void> => {
+  let config: CFSDeployConfig;
+  try {
+    config = await getCFSDeployConfig(app.workDir);
+  } catch (err) {
+    app.logger.error(err.message || 'Failed to locate the config file.');
+    return process.exit(-10521);
+  }
+  if (!config.deploy) {
+    app.logger.error('Necessary deploy part is missing, please check your deploy config.');
+    return process.exit(-10412);
+  }
+  if (!config.files || !Array.isArray(config.files)) {
+    app.logger.error('Please set files information in the deploy configuration.');
+    return process.exit(-10413);
+  }
+  try {
+    await Promise.all(
+      config.files.map((item) => {
+        return deployConfig(app, item, config.deploy || {});
+      })
+    );
+  } catch {
+    app.logger.error('Failed to deploy configuration files.');
+    return;
+  }
+  app.logger.debug('Configuration files have been deployed.');
+};
+
 const mount = (app: Application, program: commander.Command): void => {
   const cmd = program.command('cfs').description('tigo CFS helpers');
   cmd
@@ -87,6 +197,12 @@ const mount = (app: Application, program: commander.Command): void => {
     .description('Show the content in the CFS deploy configuration.')
     .action(async () => {
       await showConfigContent(app);
+    });
+  cmd
+    .command('deploy')
+    .description('Deploy the configuration to tigo server.')
+    .action(async () => {
+      await startDeployConfig(app);
     });
 };
 
