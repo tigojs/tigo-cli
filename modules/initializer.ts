@@ -77,19 +77,27 @@ const initializeLambdaEnv = async (app: Application) => {
   const config = getConfig() || {};
   let devConfig = getDevConfig(app) || {};
   devConfig = devConfig || {};
-  const { access_key: ak, secret_key: sk } = config;
+  const { access_key: accessKey, secret_key: secretKey } = config;
   if (!devConfig.content.deploy) {
     devConfig.content.deploy = {};
   }
-  if (config.access_key && config.secret_key) {
+  if (accessKey && secretKey) {
     Object.assign(devConfig.content.deploy, {
-      accessKey: ak,
-      secretKey: sk,
+      accessKey,
+      secretKey,
     });
   }
   if (config.host) {
     const host = parseHost(config.host);
+    if (!host.port) {
+      host.port = host.https ? 443 : 80;
+    }
     Object.assign(devConfig.content.deploy, host);
+  }
+  if (config.server_internal_base) {
+    Object.assign(devConfig.content.deploy, {
+      base: config.server_internal_base,
+    });
   }
   // ask the port
   const answer = await inquirer.prompt([

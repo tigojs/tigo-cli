@@ -80,6 +80,7 @@ export interface LambdaDevConfig {
     deploy?: {
       host?: string;
       https?: boolean;
+      base?: string;
       accessKey?: string;
       secretKey?: string;
     };
