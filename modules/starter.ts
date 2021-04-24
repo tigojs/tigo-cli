@@ -233,12 +233,10 @@ const mount = async (app: Application, program: commander.Command): Promise<void
         return await startServer(app, 'directly', serverDir);
       }
       if (defaultType === 'pm2') {
-        app.logger.debug('Trying to start server with pm2...');
         return await startServer(app, 'pm2', serverDir);
       }
       // default process
       if (pm2Installed) {
-        app.logger.debug('Trying to start server with pm2...');
         await startServer(app, 'pm2', serverDir);
       } else {
         // detect pm2
