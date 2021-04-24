@@ -121,14 +121,13 @@ const deployConfig = (app: Application, fileInfo: ConfigFileInfo, deployInfo: CF
     if (!ALLOWED_TYPES.includes(type)) {
       return reject(new Error('The file type cannot be accepted by the server.'));
     }
-    let { name: fileName } = fileInfo;
-    if (!fileName) {
+    if (!fileInfo.name) {
       app.logger.warn(`File name is empty, using basename by default.`);
-      fileName = path.basename(fileInfo.path, extname);
+      fileInfo.name = path.basename(fileInfo.path, extname);
     }
     const fileCotent = await fsp.readFile(filePath, { encoding: 'utf-8' });
     // send request
-    app.logger.debug(`Deploying ${fileName}.${type}...`);
+    app.logger.debug(`Deploying ${fileInfo.name}.${type}...`);
     const headers = {
       Accept: 'application/json',
     };
@@ -140,7 +139,7 @@ const deployConfig = (app: Application, fileInfo: ConfigFileInfo, deployInfo: CF
           .set(headers)
           .send({
             action,
-            name: fileName,
+            name: fileInfo.name,
             type,
             content: Buffer.from(fileCotent, 'utf-8').toString('base64'),
           });
