@@ -134,14 +134,20 @@ const initializeLambdaEnv = async (app: Application) => {
   ]);
   // set up devServer part
   if (!devConfig.content.devServer) {
-    devConfig.content.devServer = {};
+    devConfig.content.devServer = {
+      port: 9292,
+      maxFileSize: 104857600,
+    };
   }
   Object.assign(devConfig.content.devServer, {
     port: answer.port,
   });
   // set up lambda part
   if (!devConfig.content.lambda) {
-    devConfig.content.lambda = {};
+    devConfig.content.lambda = {
+      allowRequire: [],
+      env: {},
+    };
   }
   Object.assign(devConfig.content.lambda, {
     cfs: {
@@ -154,6 +160,12 @@ const initializeLambdaEnv = async (app: Application) => {
       enable: answer.kv,
     },
   });
+  // set up rollup part
+  if (!devConfig.content.rollup) {
+    devConfig.content.rollup = {
+      output: './dist/bundled.js',
+    };
+  }
   // write config file
   try {
     fs.writeFileSync(devConfig.path, JSON.stringify(devConfig.content, null, '  '), { encoding: 'utf-8' });
