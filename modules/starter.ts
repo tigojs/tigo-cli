@@ -81,7 +81,7 @@ const startServerDirectly = async (app: Application, serverDir: string) => {
   }
   const spawn = () => {
     return new Promise<void>(async (resolve, reject) => {
-      const serverSpawn = child_process.spawn('node', [serverMainPath], {
+      const serverSpawn = child_process.spawn(process.execPath, [serverMainPath], {
         detached: true,
         stdio: 'ignore',
         env: {
