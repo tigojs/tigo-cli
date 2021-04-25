@@ -1,6 +1,6 @@
 {
   "name": "@tigojs/cli",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "CLI tool for tigo",
   "main": "./bin/cli.js",
   "bin": {

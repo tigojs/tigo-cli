@@ -2,7 +2,7 @@ import commander from 'commander';
 import path from 'path';
 import toSnakeCase from 'to-snake-case';
 import { Application } from '../interface/application';
-import { getConfig, updateConfigItem } from '../utils/config';
+import { getConfig, saveConfig, updateConfigItem } from '../utils/config';
 
 const specs = {
   server_dir: (app, key, value) => {
@@ -22,7 +22,7 @@ const mount = (app: Application, program: commander.Command): void => {
     .description('Operate the configuration file.');
   cmd
     .command('set <key> <value>')
-    .description('Set configuration for cli.')
+    .description('Set a configuration for CLI tool.')
     .action(async (key: string, value: string) => {
       const formattedKey = toSnakeCase(key);
       if (!specs[formattedKey]) {
@@ -30,11 +30,11 @@ const mount = (app: Application, program: commander.Command): void => {
       } else {
         updateConfigItem(formattedKey, specs[formattedKey](app, formattedKey, value));
       }
-      app.logger.info('Configuration saved.');
+      app.logger.info('Configuration was set.');
     });
   cmd
     .command('get <key>')
-    .description('Get a configuration from storage.')
+    .description('Get an item from CLI tool configuration.')
     .action(async (key: string) => {
       const config = getConfig();
       if (!config || !config[key]) {
@@ -42,6 +42,19 @@ const mount = (app: Application, program: commander.Command): void => {
         return;
       }
       app.logger.info(`${key}: ${config[key]}`);
+    });
+  cmd
+    .command('remove <key>')
+    .description('Remove a key from CLI tool configuration.')
+    .action(async (key: string) => {
+      const config = getConfig();
+      if (!config || !config[key]) {
+        app.logger.error('Cannot find the specific configuration.');
+        return;
+      }
+      delete config[key];
+      saveConfig(config);
+      app.logger.info(`"${key}" has been removed from configuration.`);
     });
   cmd
     .command('list')
