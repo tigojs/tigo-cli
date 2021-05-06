@@ -5,7 +5,7 @@ import { Application } from '../interface/application';
 import { getConfig, saveConfig, updateConfigItem } from '../utils/config';
 
 const specs = {
-  server_dir: (app, key, value) => {
+  server_dir: (app, value: string) => {
     if (value === 'current') {
       return app.workDir;
     }
@@ -14,6 +14,12 @@ const specs = {
     }
     return value;
   },
+  server_internal_base: (app, value: string) => {
+    if (value.endsWith('/')) {
+      return value.substr(0, value.length - 1);
+    }
+    return value;
+  }
 };
 
 const mount = (app: Application, program: commander.Command): void => {
@@ -28,7 +34,7 @@ const mount = (app: Application, program: commander.Command): void => {
       if (!specs[formattedKey]) {
         updateConfigItem(formattedKey, value);
       } else {
-        updateConfigItem(formattedKey, specs[formattedKey](app, formattedKey, value));
+        updateConfigItem(formattedKey, specs[formattedKey](app, value));
       }
       app.logger.info('Configuration was set.');
     });

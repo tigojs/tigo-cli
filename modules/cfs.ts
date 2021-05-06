@@ -36,10 +36,10 @@ const getConfigItems = (app: Application, cliConfig: CliConfig): ConfigItems => 
     app.logger.error('Please use the cli tool to set Web API secret_key first.');
     return process.exit(-10411);
   }
-  if (!server_internal_base) {
+  if (typeof server_internal_base === 'undefined') {
     app.logger.warn('Server internal base is not set, use "/api" by default.');
   }
-  return { host, accessKey: access_key, secretKey: secret_key, internalBase: server_internal_base || '/api' };
+  return { host, accessKey: access_key, secretKey: secret_key, internalBase: server_internal_base ?? '/api' };
 };
 
 const initCFSDeployConfig = async (app: Application): Promise<void> => {
