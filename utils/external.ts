@@ -39,13 +39,13 @@ export const buildExternalScriptThis = (app: Application, rcStatus?: RuntimeConf
     sqlite,
   };
   if (rcStatus && rc) {
-    const getPluginConfig = (name): unknown => {
+    const getPluginConfig = (packageName): unknown => {
       if (!rc || !rc.plugins) {
         return null;
       }
       const installedPlugins = Object.keys(rc.plugins);
       for (const pluginName of installedPlugins) {
-        if (rc.plugins[pluginName].package === name) {
+        if (rc.plugins[pluginName].package === packageName) {
           if (!rc.plugins[pluginName].config) {
             rc.plugins[pluginName].config = {};
           }
