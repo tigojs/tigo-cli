@@ -7,6 +7,7 @@ import mysql from 'mysql2/promise';
 import sqlite from 'sqlite3';
 import inquirer from 'inquirer';
 import NpmApi from 'npm-api';
+import SqlitePromises from './sqlite';
 
 const npm = new NpmApi();
 
@@ -18,6 +19,7 @@ export interface ExternalScriptThis {
   logger: Logger;
   mysql: typeof mysql;
   sqlite: typeof sqlite;
+  sqlitePromises: SqlitePromises;
   rc?: {
     status: RuntimeConfigStatus;
     content: RuntimeConfig;
@@ -37,6 +39,7 @@ export const buildExternalScriptThis = (app: Application, rcStatus?: RuntimeConf
     logger: app.logger,
     mysql,
     sqlite,
+    sqlitePromises: new SqlitePromises(),
   };
   if (rcStatus && rc) {
     const getPluginConfig = (packageName): unknown => {
