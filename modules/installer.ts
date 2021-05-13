@@ -6,7 +6,7 @@ import fs from 'fs';
 import inquirer from 'inquirer';
 import { Application } from '../interface/application';
 import { checkServerDir, getRuntimeConfig, getRuntimeConfigStatus, writeRuntimeConfig } from '../utils/env';
-import { buildPostInstallThisArg } from '../utils/postInstall';
+import { buildExternalScriptThis } from '../utils/external';
 
 const npm = new NpmApi();
 
@@ -90,7 +90,7 @@ const installToServer = async (app: Application, moduleName: string): Promise<vo
     if (fs.existsSync(postInstallScriptPath)) {
       const postInstall = (await import(postInstallScriptPath)).default;
       if (postInstall) {
-        await postInstall.call(buildPostInstallThisArg(app, rcStatus, rc));
+        await postInstall.call(buildExternalScriptThis(app, rcStatus, rc));
       }
     }
   }

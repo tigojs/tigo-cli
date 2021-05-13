@@ -2,7 +2,7 @@ import commander from 'commander';
 import path from 'path';
 import fs from 'fs';
 import { Application } from '../interface/application';
-import { buildPostInstallThisArg } from '../utils/postInstall';
+import { buildExternalScriptThis } from '../utils/external';
 import { getRuntimeConfig, getRuntimeConfigStatus } from '../utils/env';
 
 const mount = async (app: Application, program: commander.Command): Promise<void> => {
@@ -40,7 +40,7 @@ const mount = async (app: Application, program: commander.Command): Promise<void
       }
       const postInstall = (await import(filePath)).default;
       if (postInstall) {
-        await postInstall.call(buildPostInstallThisArg(application, rcStatus, rc));
+        await postInstall.call(buildExternalScriptThis(application, rcStatus, rc));
       } else {
         app.logger.error('Cannot import the script.');
         return process.exit(-104103);

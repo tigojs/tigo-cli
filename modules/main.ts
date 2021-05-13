@@ -1,6 +1,7 @@
 import Initializer from './initializer';
 import Installer from './installer';
 import Upgrader from './upgrader';
+import Migrater from './migrater';
 import Remover from './remover';
 import Config from './config';
 import Show from './show';
@@ -13,6 +14,7 @@ export default [
   Initializer,
   Installer,
   Upgrader,
+  Migrater,
   Remover,
   Config,
   Show,

@@ -1,6 +1,6 @@
 {
   "name": "@tigojs/cli",
-  "version": "0.7.3",
+  "version": "0.8.0",
   "description": "CLI tool for tigo",
   "main": "./bin/cli.js",
   "bin": {
@@ -49,9 +49,11 @@
     "gunzip-maybe": "^1.4.2",
     "inquirer": "^8.0.0",
     "log4js": "^6.3.0",
+    "mysql2": "^2.2.5",
     "npm-api": "^1.0.1",
     "prettier": "^2.2.1",
     "shelljs": "^0.8.4",
+    "sqlite3": "^5.0.2",
     "ssri": "^8.0.1",
     "superagent": "^6.1.0",
     "tar-fs": "^2.1.1",
