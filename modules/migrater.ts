@@ -17,13 +17,23 @@ const mount = async (app: Application, program: commander.Command): Promise<void
         }
         // check module
         const modulePath = path.resolve(app.workDir, `./node_modules/${moduleName}`);
+        const prefixedModulePath = path.resolve(app.workDir, `./node_modules/@tigojs/${moduleName}`);
+        let isPrefixed = false;
         if (!fs.existsSync(modulePath)) {
-          app.logger.error('Cannot locate the module.');
-          return process.exit(-10404);
+          if (!fs.existsSync(prefixedModulePath)) {
+            app.logger.error('Cannot locate the module.');
+            return process.exit(-10404);
+          } else {
+            // isPrefixed
+            isPrefixed = true;
+          }
         }
         // check script
-        const formattedVersion = version.startsWith('v') ? `v${version}` : '';
-        const scriptPath = path.resolve(modulePath, `./scripts/${formattedVersion}.js`);
+        let formattedVersion = version.startsWith('v') ? `v${version}` : '';
+        if (formattedVersion.includes('x')) {
+          formattedVersion = formattedVersion.replace(/x/g, '0');
+        }
+        const scriptPath = path.resolve(isPrefixed ? prefixedModulePath : modulePath, `./scripts/${formattedVersion}.js`);
         if (!fs.existsSync(scriptPath)) {
           app.logger.error('Cannot locate the migration script.');
           return process.exit(-10404);
