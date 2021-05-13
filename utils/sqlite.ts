@@ -7,13 +7,13 @@ class SqlitePromises {
   constructor() {
     this.db = null;
   }
-  open(path: string): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
+  open(path: string): Promise<SqlitePromises> {
+    return new Promise<SqlitePromises>((resolve, reject) => {
       this.db = new sqlite.Database(path, (err) => {
         if (err) {
           return reject(err);
         }
-        resolve();
+        resolve(this);
       });
     });
   }
