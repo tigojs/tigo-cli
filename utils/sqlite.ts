@@ -7,7 +7,7 @@ class SqlitePromises {
   constructor() {
     this.db = null;
   }
-  connect(path: string): Promise<void> {
+  open(path: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       this.db = new sqlite.Database(path, (err) => {
         if (err) {
