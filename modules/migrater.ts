@@ -29,11 +29,12 @@ const mount = async (app: Application, program: commander.Command): Promise<void
           }
         }
         // check script
-        let formattedVersion = version.startsWith('v') ? `v${version}` : '';
+        let formattedVersion = version.startsWith('v') ?  version : `v${version}`;
         if (formattedVersion.includes('x')) {
           formattedVersion = formattedVersion.replace(/x/g, '0');
         }
         const scriptPath = path.resolve(isPrefixed ? prefixedModulePath : modulePath, `./scripts/migrate/${formattedVersion}.js`);
+        console.log(scriptPath);
         if (!fs.existsSync(scriptPath)) {
           app.logger.error('Cannot locate the migration script.');
           return process.exit(-10404);
