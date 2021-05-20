@@ -26,8 +26,10 @@ export const setStore = (store: CliStore, key: string | Array<string>, value: un
     key.forEach((k) => {
       store[k] = value;
     });
-  } else {
+  } else if (typeof key === 'string') {
     store[key] = value;
+  } else {
+    return;
   }
   fs.writeFileSync(storePath, JSON.stringify(store), { encoding: 'utf-8' });
 };
