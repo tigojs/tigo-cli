@@ -18,7 +18,7 @@ const mount = (app: Application, program: commander.Command): void => {
       const panelData = getPanelData();
       // check server dir
       let panelRootPath;
-      if (!panelRootPath && checkServerDir(app.workDir)) {
+      if (checkServerDir(app.workDir)) {
         const rc = await getRuntimeConfig(app.workDir);
         if (rc && rc.plugins) {
           // get @tigojs/fepanel config
@@ -41,7 +41,7 @@ const mount = (app: Application, program: commander.Command): void => {
           }
         }
       }
-      if (panelData.rootPath && fs.existsSync(panelData.rootPath)) {
+      if (!panelRootPath && panelData.rootPath && fs.existsSync(panelData.rootPath)) {
         panelRootPath = panelData.rootPath;
       }
       // ask user for the path
@@ -112,6 +112,10 @@ const mount = (app: Application, program: commander.Command): void => {
         app.logger.error('Failed extract the panel package.', err.message || err);
         return process.exit(-10526);
       }
+      savePanelData({
+        version: releaseVer,
+        rootPath: panelRootPath,
+      });
       app.logger.info('The panel has been upgraded.');
     });
 };
