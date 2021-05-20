@@ -13,9 +13,14 @@ export const downloadFileWithProgress = async (sourceURL: string, targetPath: st
   req.on('progress', (e) => {
     bar.update(e.percent || 0);
   });
-  await writeFileFromReq(req, targetPath);
-  bar.update(bar.getTotal());
-  bar.stop();
+  try {
+    await writeFileFromReq(req, targetPath);
+    bar.update(bar.getTotal());
+    bar.stop();
+  } catch (err) {
+    bar.stop();
+    throw err;
+  }
 };
 
 export const writeFileFromReq = async (req: SuperAgentRequest, path: string): Promise<void> => {

@@ -199,7 +199,7 @@ const getServerDir = (app: Application) => {
   const serverDir = cliConfig?.server_dir || app.workDir;
   if (!checkServerDir(serverDir)) {
     app.logger.error('Cannot locate the tigo server.');
-    process.exit(-10409);
+    return process.exit(-10409);
   }
   return { serverDir, pm2Installed: cliConfig?.pm2_installed, defaultType: cliConfig?.server_default_start_type };
 };

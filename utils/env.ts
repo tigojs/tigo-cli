@@ -20,7 +20,7 @@ export const checkEnvironment = ({ minNodeVersion }: EnvCheckOptions): void => {
   const nodeVer = parseInt(process.versions.node.split('.')[0], 10);
   if (nodeVer < minNodeVersion) {
     console.error(chalk.red(`Node.js is outdated, at least v${minNodeVersion} is required, please do upgrade first.`));
-    process.exit(-10001);
+    return process.exit(-10001);
   }
 };
 
