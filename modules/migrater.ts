@@ -50,7 +50,12 @@ const mount = async (app: Application, program: commander.Command): Promise<void
           } else {
             thisArg = buildExternalScriptThis(app);
           }
-          await migrate.call(thisArg);
+          try {
+            await migrate.call(thisArg);
+          } catch (err) {
+            app.logger.error('Migration failed.', err);
+            return process.exit(-10523);
+          }
         } else {
           app.logger.error('Cannot load migration script.');
           return process.exit(-10522);
