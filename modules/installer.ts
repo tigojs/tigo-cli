@@ -75,6 +75,12 @@ const installToServer = async (app: Application, moduleName: string): Promise<vo
   }
   app.logger.debug('Module package has been successfully installed.');
   // build config
+  const { tigo } = pkg;
+  if (tigo && tigo.type === 'lambda-package') {
+    app.logger.info('Lambda package has added to your tigo server.');
+    return;
+  }
+  // build config
   if (rc.plugins[moduleName]) {
     rc.plugins[moduleName].package = repoName;
   } else {
