@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.10.0
+
+- Feat: support before install script.
+
 ## v0.9.2
 
 - Feat: panel upgrade command will output the latest version info now.

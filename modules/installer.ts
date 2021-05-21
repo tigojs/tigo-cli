@@ -66,7 +66,23 @@ const installToServer = async (app: Application, moduleName: string): Promise<vo
   const { pkg, repoName } = await fetchPackageInfo(app, '@tigojs/', moduleName);
   // install module
   const { version } = pkg;
-  app.logger.debug(`Detected version v${version}, start installing...`);
+  app.logger.debug(`Detected version v${version}.`);
+  // run before install script
+  if (pkg.tigo?.scripts?.beforeInstall) {
+    const beforeInstallScriptPath = path.resolve(app.workDir, `./node_modules/${pkg.name}/${pkg.tigo.scripts.beforeInstall}`);
+    if (fs.existsSync(beforeInstallScriptPath)) {
+      const beforeInstall = (await import(beforeInstallScriptPath)).default;
+      if (beforeInstall) {
+        try {
+          beforeInstall.call(buildExternalScriptThis(app, rcStatus, rc));
+        } catch (err) {
+          app.logger.error('Failed to execute before install script.', err);
+          return process.exit(-10528);
+        }
+      }
+    }
+  }
+  app.logger.debug('Start installing..');
   try {
     child_process.execSync(`npm install ${repoName}`, { stdio: 'inherit' });
   } catch {
@@ -90,13 +106,18 @@ const installToServer = async (app: Application, moduleName: string): Promise<vo
   }
   // write config
   writeRuntimeConfig(rcStatus, rc);
-  if (pkg.tigo && pkg.tigo.scripts && pkg.tigo.scripts.postInstall) {
-    // run post install script
+  // run post install script
+  if (pkg.tigo?.scripts?.postInstall) {
     const postInstallScriptPath = path.resolve(app.workDir, `./node_modules/${pkg.name}/${pkg.tigo.scripts.postInstall}`);
     if (fs.existsSync(postInstallScriptPath)) {
       const postInstall = (await import(postInstallScriptPath)).default;
       if (postInstall) {
-        await postInstall.call(buildExternalScriptThis(app, rcStatus, rc));
+        try {
+          await postInstall.call(buildExternalScriptThis(app, rcStatus, rc));
+        } catch (err) {
+          app.logger.error('Failed to execute the post install script.', err);
+          return process.exit(-10527);
+        }
       }
     }
   }
