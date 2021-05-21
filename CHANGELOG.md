@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.2
+
+- Feat: panel upgrade command will output the latest version info now.
+
 ## v0.9.1
 
 - Fix: panel version will be saved after upgrading.
