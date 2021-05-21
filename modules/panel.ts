@@ -79,6 +79,7 @@ const mount = (app: Application, program: commander.Command): void => {
         return process.exit(-10524);
       }
       const releaseVer = latestRelease.tagName.substr(1);
+      app.logger.info(`Found latest version ${releaseVer}.`);
       if (panelData.version) {
         if (compareVersions.compare(releaseVer, panelData.version, '<=')) {
           app.logger.info('Your tigo panel is already the latest version.');
