@@ -1,14 +1,19 @@
 import commander from 'commander';
+import path from 'path';
 import fs from 'fs';
 import shelljs from 'shelljs';
 import child_process from 'child_process';
 import inquirer from 'inquirer';
 import { Application } from '../interface/application';
-import { checkGit, getDevConfig, getRuntimeConfigStatus, writeRuntimeConfig } from '../utils/env';
+import { getDevConfig, getRuntimeConfigStatus, writeRuntimeConfig } from '../utils/env';
 import { RuntimeConfig } from '../interface/rc';
 import { getConfig, updateConfigItem } from '../utils/config';
 import { parseHost } from '../utils/host';
 import { downloadFrameworkPack, extractFrameworkPack } from '../utils/framework';
+import { getRepoLatestRelease } from '../utils/github';
+import { GitHubReleaseInfo } from '../interface/github';
+import { downloadFileWithProgress } from '../utils/network';
+import { extractTgz } from '../utils/pack';
 
 const initializeServerConfig = async (app: Application): Promise<void> => {
   const status = getRuntimeConfigStatus(app.workDir);
@@ -43,26 +48,33 @@ const initializeServerConfig = async (app: Application): Promise<void> => {
 };
 
 const initializeLambdaEnv = async (app: Application) => {
-  const gitStatus = checkGit();
-  if (!gitStatus.installed) {
-    app.logger.error('Git is not installed, please install git first.');
-    return process.exit(-10401);
-  }
-  // clone repo
-  app.logger.debug('Downloading repository...');
+  // fetch latest release
+  let latestRelease: GitHubReleaseInfo | undefined;
   try {
-    child_process.execSync('git clone -b main https://github.com/tigojs/tigo-lambda-template.git --depth 1', { stdio: 'inherit' });
-  } catch {
-    app.logger.error('Failed to clone the repository.');
-    return process.exit(-10514);
+    latestRelease = await getRepoLatestRelease('tigojs/tigo-lambda-template');
+  } catch (err) {
+    app.logger.error('Cannot fetch the latest release.');
+    return process.exit(-10529);
   }
-  app.logger.info('Repository downloaded.');
-  if (shelljs.cp('-rf', ['./tigo-lambda-template/*', './tigo-lambda-template/.*'], './').code !== 0) {
-    app.logger.error('Cannot move repository files.');
-    return process.exit(-10501);
+  if (!latestRelease || !latestRelease.downloadUrl || !latestRelease.tagName) {
+    app.logger.error('Cannot fetch the latest release.');
+    return process.exit(-10529);
   }
-  if (shelljs.rm('-rf', './tigo-lambda-template').code !== 0) {
-    app.logger.warn('Failed to remove temp folder.');
+  const { tagName: releaseVer } = latestRelease;
+  app.logger.info(`Found latest version ${releaseVer}.`);
+  // download and extract the latest release
+  const tempSavePath = path.resolve(app.tempDir, `./devenv_${releaseVer}.tgz`);
+  try {
+    await downloadFileWithProgress(latestRelease.downloadUrl, tempSavePath, 'Downloading the latest release of lambda development environment... [{bar}] {percentage}%');
+  } catch (err) {
+    app.logger.error('Failed to download the latest release.', err.message || err);
+    return process.exit(-10525);
+  }
+  try {
+    await extractTgz(tempSavePath, app.workDir);
+  } catch (err) {
+    app.logger.error('Failed to extract the latest release of lambda development environment.', err.message || err);
+    return process.exit(-10526);
   }
   // install dependencies
   app.logger.debug('Start installing dependencies...');
