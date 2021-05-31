@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.11.0
+
+- Feat: cli tool will fetch lambda developmenet environment from releaes now, not clone the repo.
+
+- Feat: allow user set project info when initializing the lambda development environment.
+
 ## v0.10.0
 
 - Feat: support before install script.
