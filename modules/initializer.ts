@@ -14,6 +14,8 @@ import { getRepoLatestRelease } from '../utils/github';
 import { GitHubReleaseInfo } from '../interface/github';
 import { downloadFileWithProgress } from '../utils/network';
 import { extractTgz } from '../utils/pack';
+import { isSpdxLicenseId } from '../utils/spdx';
+import { ProjectInfo } from '../interface/project';
 
 const initializeServerConfig = async (app: Application): Promise<void> => {
   const status = getRuntimeConfigStatus(app.workDir);
@@ -48,6 +50,38 @@ const initializeServerConfig = async (app: Application): Promise<void> => {
 };
 
 const initializeLambdaEnv = async (app: Application) => {
+  // ask user giving necessary info
+  app.logger.info('We need some necessary info about your tigo lambda project:');
+  const projectInfo: ProjectInfo = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'name',
+      message: 'Project name: ',
+      validate: (v) => {
+        if (!v) {
+          return 'Project name cannot be empty.';
+        }
+        return true;
+      },
+    },
+    {
+      type: 'input',
+      name: 'author',
+      message: 'Author: ',
+    },
+    {
+      type: 'input',
+      name: 'license',
+      message: 'License: ',
+      default: 'MIT',
+      validate: (v) => {
+        if (!isSpdxLicenseId(v)) {
+          return 'Cannot find this license in SPDX license list.';
+        }
+        return true;
+      }
+    },
+  ]);
   // fetch latest release
   let latestRelease: GitHubReleaseInfo | undefined;
   try {
@@ -75,6 +109,18 @@ const initializeLambdaEnv = async (app: Application) => {
   } catch (err) {
     app.logger.error('Failed to extract the latest release of lambda development environment.', err.message || err);
     return process.exit(-10526);
+  }
+  // process package.json
+  const packageInfoPath = path.resolve(app.workDir, './package.json');
+  if (fs.existsSync(packageInfoPath)) {
+    try {
+      const packageInfo = JSON.parse(fs.readFileSync(packageInfoPath, { encoding: 'utf-8' }));
+      Object.assign(packageInfo, projectInfo);
+      packageInfo.version = '1.0.0';
+      fs.writeFileSync(packageInfoPath, JSON.stringify(packageInfo, null, '  '), { encoding: 'utf-8' });
+    } catch (err) {
+      app.logger.warn('Failed to modify package.json.', err);
+    }
   }
   // install dependencies
   app.logger.debug('Start installing dependencies...');
