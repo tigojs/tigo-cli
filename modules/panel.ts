@@ -5,13 +5,16 @@ import fs from 'fs';
 import inquirer from 'inquirer';
 import { Application } from '../interface/application';
 import { checkServerDir, getRuntimeConfig } from '../utils/env';
-import { getPanelData, getPanelLastestRelease, savePanelData } from '../utils/panel';
+import { getPanelData, savePanelData } from '../utils/panel';
 import { downloadFileWithProgress } from '../utils/network';
 import { extractTgz } from '../utils/pack';
+import { getRepoLatestRelease } from '../utils/github';
+import { GitHubReleaseInfo } from '../interface/github';
 
 const mount = (app: Application, program: commander.Command): void => {
   const cmd = program.command('panel').description('tigo panel helpers');
-  cmd.command('upgrade')
+  cmd
+    .command('upgrade')
     .description('Upgrade your tigo-panel')
     .action(async () => {
       // get tigo panel data
@@ -66,16 +69,16 @@ const mount = (app: Application, program: commander.Command): void => {
           rootPath: panelRootPath,
         });
       }
-      // check version
-      let latestRelease;
+      // fetch latest release
+      let latestRelease: GitHubReleaseInfo | undefined;
       try {
-        latestRelease = await getPanelLastestRelease();
+        latestRelease = await getRepoLatestRelease('tigojs/tigo-panel');
       } catch (err) {
-        app.logger.error('Cannot fetch the latest release info.');
+        app.logger.error('Cannot fetch the latest release.');
         return process.exit(-10524);
       }
       if (!latestRelease || !latestRelease.tagName || !latestRelease.downloadUrl) {
-        app.logger.error('Cannot fetch the latest release info.');
+        app.logger.error('Cannot fetch the latest release.');
         return process.exit(-10524);
       }
       const releaseVer = latestRelease.tagName.substr(1);
@@ -93,13 +96,13 @@ const mount = (app: Application, program: commander.Command): void => {
             name: 'confirm',
             message: 'Cannot detect the version of the panel, do you want to continue upgrading?',
             default: false,
-          }
+          },
         ]);
         if (!ans.confirm) {
           return process.exit(0);
         }
       }
-      // download the package
+      // download latest release
       const tempSavePath = path.resolve(app.tempDir, `./panel_${releaseVer}.tgz`);
       try {
         await downloadFileWithProgress(latestRelease.downloadUrl, tempSavePath, 'Downloading panel release... [{bar}] {percentage}%');
