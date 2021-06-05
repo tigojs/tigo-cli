@@ -8,7 +8,11 @@
 
 - Feat: when intializing labmda dev env, version of the env will be written to `package.json`.
 
+- Feat: cli tool will ask user to init git repository if git has been detected.
+
 - Fix: cannot read dev config when initializing lambda dev env.
+
+- Fix: correct version in returns of `checkGit` method.
 
 ## v0.11.1
 

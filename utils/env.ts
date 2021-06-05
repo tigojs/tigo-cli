@@ -102,7 +102,7 @@ export const getDevConfig = (app: Application, dir?: string): LambdaDevConfig =>
 export const checkGit = (): GitStatus => {
   const gitStatus = shelljs.exec('git --version', { silent: true });
   let gitInstalled = false;
-  const gitVersion = gitStatus.stdout;
+  const gitVersion = gitStatus.stdout.replace('git version ', '');
   if (gitStatus.code === 0) {
     gitInstalled = true;
   }

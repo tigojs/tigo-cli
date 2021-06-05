@@ -5,7 +5,7 @@ import shelljs from 'shelljs';
 import child_process from 'child_process';
 import inquirer from 'inquirer';
 import { Application } from '../interface/application';
-import { getDevConfig, getRuntimeConfigStatus, writeRuntimeConfig } from '../utils/env';
+import { checkGit, getDevConfig, getRuntimeConfigStatus, writeRuntimeConfig } from '../utils/env';
 import { RuntimeConfig } from '../interface/rc';
 import { getConfig, updateConfigItem } from '../utils/config';
 import { parseHost } from '../utils/host';
@@ -177,6 +177,7 @@ const initializeLambdaEnv = async (app: Application) => {
     });
   }
   // ask the port
+  app.logger.info('The lambda dev environment is almost ready, we need you to provide more information to configure it.');
   const answer = await inquirer.prompt([
     {
       type: 'number',
@@ -237,6 +238,37 @@ const initializeLambdaEnv = async (app: Application) => {
       enable: answer.kv,
     },
   });
+  // ask for init git repo
+  const gitStatus = checkGit();
+  if (gitStatus.installed) {
+    const gitAnswer = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'init',
+        message: 'Do you want to init a git repository?',
+        default: true,
+      },
+    ]);
+    if (gitAnswer.init) {
+      shelljs.exec('git init', { silent: true });
+      const commitAnswer = await inquirer.prompt([
+        {
+          type: 'input',
+          name: 'message',
+          message: 'First commit message: ',
+          default: 'Initialized tigo lambda dev environment.',
+          validate: (v) => {
+            if (!v) {
+              return 'Commit message cannot be empty';
+            }
+            return true;
+          }
+        }
+      ]);
+      shelljs.exec('git add .');
+      shelljs.exec(`git commit -m "${commitAnswer.message}"`);
+    }
+  }
   // set up rollup part
   if (!devConfig.content.rollup) {
     devConfig.content.rollup = {
