@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.11.2
+
+- Feat: change mock default value to `true` when initializing the lambda dev env.
+
+- Fix: cannot read dev config when initializing the lambda dev env.
+
 ## v0.11.1
 
 - Minor: fit `tigo-lambda-devenv` repo name change.

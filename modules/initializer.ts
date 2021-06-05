@@ -133,8 +133,10 @@ const initializeLambdaEnv = async (app: Application) => {
   app.logger.info('Dependencies installed.');
   // init dev env config
   const config = getConfig() || {};
-  let devConfig = getDevConfig(app) || {};
-  devConfig = devConfig || {};
+  const devConfig = getDevConfig(app);
+  if (!devConfig.content) {
+    devConfig.content = {};
+  }
   const { access_key: accessKey, secret_key: secretKey } = config;
   if (!devConfig.content.deploy) {
     devConfig.content.deploy = {};
@@ -174,19 +176,19 @@ const initializeLambdaEnv = async (app: Application) => {
     {
       type: 'confirm',
       message: 'Do you want to enable Lambda KV Storage?',
-      default: false,
+      default: true,
       name: 'kv',
     },
     {
       type: 'confirm',
       message: 'Do you want to enable OSS Mock?',
-      default: false,
+      default: true,
       name: 'oss',
     },
     {
       type: 'confirm',
       message: 'Do you want to enable CFS Mock?',
-      default: false,
+      default: true,
       name: 'cfs',
     },
   ]);
