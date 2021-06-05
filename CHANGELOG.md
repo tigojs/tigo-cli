@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.11.1
+
+- Minor: fit `tigo-lambda-devenv` repo name change.
+
 ## v0.11.0
 
 - Feat: cli tool will fetch lambda developmenet environment from releaes now, not clone the repo.

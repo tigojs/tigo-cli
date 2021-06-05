@@ -85,7 +85,7 @@ const initializeLambdaEnv = async (app: Application) => {
   // fetch latest release
   let latestRelease: GitHubReleaseInfo | undefined;
   try {
-    latestRelease = await getRepoLatestRelease('tigojs/tigo-lambda-template');
+    latestRelease = await getRepoLatestRelease('tigojs/tigo-lambda-devenv');
   } catch (err) {
     app.logger.error('Cannot fetch the latest release.');
     return process.exit(-10529);
