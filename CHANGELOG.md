@@ -2,9 +2,11 @@
 
 ## v0.11.2
 
-- Feat: change mock default value to `true` when initializing the lambda dev env.
+- Feat: change mock default value to `true` when initializing lambda dev env.
 
-- Fix: cannot read dev config when initializing the lambda dev env.
+- Feat: cli tool will remove `.github` folder automatically after lambda dev env initialized.
+
+- Fix: cannot read dev config when initializing lambda dev env.
 
 ## v0.11.1
 
