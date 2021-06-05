@@ -79,7 +79,7 @@ const initializeLambdaEnv = async (app: Application) => {
           return 'Cannot find this license in SPDX license list.';
         }
         return true;
-      }
+      },
     },
   ]);
   // fetch latest release
@@ -124,7 +124,16 @@ const initializeLambdaEnv = async (app: Application) => {
     try {
       const packageInfo = JSON.parse(fs.readFileSync(packageInfoPath, { encoding: 'utf-8' }));
       Object.assign(packageInfo, projectInfo);
+      const originalVersion = packageInfo.version;
       packageInfo.version = '1.0.0';
+      if (!packageInfo.tigo) {
+        packageInfo.tigo = {};
+      }
+      if (!packageInfo.tigo.devenv) {
+        packageInfo.tigo.devenv = {
+          version: originalVersion,
+        };
+      }
       fs.writeFileSync(packageInfoPath, JSON.stringify(packageInfo, null, '  '), { encoding: 'utf-8' });
     } catch (err) {
       app.logger.warn('Failed to modify package.json.', err);
