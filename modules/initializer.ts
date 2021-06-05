@@ -110,6 +110,11 @@ const initializeLambdaEnv = async (app: Application) => {
     app.logger.error('Failed to extract the latest release of lambda development environment.', err.message || err);
     return process.exit(-10526);
   }
+  // check .github directory, if exists, remove it
+  const githubDir = path.resolve(app.workDir, './.github');
+  if (fs.existsSync(githubDir)) {
+    fs.rmdirSync(githubDir);
+  }
   // process package.json
   const packageInfoPath = path.resolve(app.workDir, './package.json');
   if (fs.existsSync(packageInfoPath)) {
