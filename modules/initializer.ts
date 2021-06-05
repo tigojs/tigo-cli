@@ -115,7 +115,7 @@ const initializeLambdaEnv = async (app: Application) => {
   if (fs.existsSync(githubDir)) {
     const delRet = shelljs.rm('-rf', './.github');
     if (delRet.code !== 0) {
-      app.logger.warn('Cannot remove .github folder automatically.'); 
+      app.logger.warn('Cannot remove .github folder automatically.');
     }
   }
   // process package.json
