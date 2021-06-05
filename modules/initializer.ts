@@ -113,7 +113,10 @@ const initializeLambdaEnv = async (app: Application) => {
   // check .github directory, if exists, remove it
   const githubDir = path.resolve(app.workDir, './.github');
   if (fs.existsSync(githubDir)) {
-    fs.rmdirSync(githubDir);
+    const delRet = shelljs.rm('-rf', './.github');
+    if (delRet.code !== 0) {
+      app.logger.warn('Cannot remove .github folder automatically.'); 
+    }
   }
   // process package.json
   const packageInfoPath = path.resolve(app.workDir, './package.json');
