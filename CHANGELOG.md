@@ -6,6 +6,8 @@
 
 - Feat: cli tool will remove `.github` folder automatically after lambda dev env initialized.
 
+- Feat: when intializing labmda dev env, version of the env will be written to `package.json`.
+
 - Fix: cannot read dev config when initializing lambda dev env.
 
 ## v0.11.1
