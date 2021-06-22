@@ -70,7 +70,7 @@ const mount = async (app: Application, program: commander.Command): Promise<void
       while (keys.length) {
         const k = keys.shift();
         const obj = current[k];
-        if (typeof obj === 'undefined') {
+        if (typeof obj === 'undefined' || obj === null) {
           console.error(chalk.red('The configuration item does not exist.'));
           return;
         }
