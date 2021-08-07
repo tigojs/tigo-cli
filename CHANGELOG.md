@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.11.4
+
+- Feat: support push a single named file to CFS with `name` option.
+
+## v0.11.3
+
+- Minor: upgrade dependencies.
+
 ## v0.11.2
 
 - Feat: change mock default value to `true` when initializing lambda dev env.
