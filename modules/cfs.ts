@@ -174,7 +174,7 @@ const deployConfig = (app: Application, fileInfo: ConfigFileInfo, deployInfo: CF
   });
 };
 
-const startDeployConfig = async (app: Application): Promise<void> => {
+const startDeployConfig = async (app: Application, name: string | undefined): Promise<void> => {
   let config: CFSDeployConfig;
   try {
     config = await getCFSDeployConfig(app.workDir);
@@ -190,15 +190,28 @@ const startDeployConfig = async (app: Application): Promise<void> => {
     app.logger.error('Please set files information in the deploy configuration.');
     return process.exit(-10413);
   }
-  try {
-    await Promise.all(
-      config.files.map((item) => {
-        return deployConfig(app, item, config.deploy || {});
-      })
-    );
-  } catch {
-    app.logger.error('Failed to deploy configuration files.');
-    return;
+  if (name) {
+    const toDeploy = config.files.find((item) => item.name === name);
+    if (!toDeploy) {
+      app.logger.error(`Cannot find file "${name}" in tigo CFS settings.`);
+      return;
+    }
+    try {
+      await deployConfig(app, toDeploy, config.deploy || {});
+    } catch (err) {
+      app.logger.error(`Failed to deploy configuration file "${name}".`, err);
+    }
+  } else {
+    try {
+      await Promise.all(
+        config.files.map((item) => {
+          return deployConfig(app, item, config.deploy || {});
+        })
+      );
+    } catch (err) {
+      app.logger.error('Failed to deploy configuration files.', err);
+      return;
+    }
   }
   await writeCFSDeployConfig(config, app.workDir);
   app.logger.info('Configuration files have been deployed.');
@@ -219,10 +232,10 @@ const mount = (app: Application, program: commander.Command): void => {
       await showConfigContent(app);
     });
   cmd
-    .command('deploy')
+    .command('deploy [name]')
     .description('Deploy the configuration to tigo server.')
-    .action(async () => {
-      await startDeployConfig(app);
+    .action(async (name: string | undefined) => {
+      await startDeployConfig(app, name);
     });
 };
 
