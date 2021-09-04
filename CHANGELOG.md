@@ -4,6 +4,10 @@
 
 - Feat: support push a single named file to CFS with `name` option.
 
+- Feat: support lastest `tigo-lambda-devenv`.
+
+- Minor: upgrade dependencies.
+
 ## v0.11.3
 
 - Minor: upgrade dependencies.

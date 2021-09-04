@@ -62,7 +62,9 @@ export interface LambdaDevConfig {
       maxFileSize?: number;
     };
     lambda?: {
-      allowRequire?: Array<string>;
+      allowedRequire?: Array<string>;
+      allowBuiltin?: boolean;
+      allowedBuiltin?: Array<string>;
       env?: Record<string, unknown>;
       cfs?: {
         enable: boolean;

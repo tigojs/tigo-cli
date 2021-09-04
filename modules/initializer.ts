@@ -223,7 +223,9 @@ const initializeLambdaEnv = async (app: Application) => {
   // set up lambda part
   if (!devConfig.content.lambda) {
     devConfig.content.lambda = {
-      allowRequire: [],
+      allowedRequire: [],
+      allowBuiltin: false,
+      allowedBuiltin: [],
       env: {},
     };
   }
