@@ -6,5 +6,5 @@ export const formatInputValue = (str: string): boolean | number | string => {
   } else if (str === 'false') {
     return false;
   }
-  return str;
+  return str || '';
 }

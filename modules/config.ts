@@ -3,6 +3,7 @@ import path from 'path';
 import toSnakeCase from 'to-snake-case';
 import { Application } from '../interface/application';
 import { getConfig, saveConfig, updateConfigItem } from '../utils/config';
+import { formatInputValue } from '../utils/string';
 
 const specs = {
   server_dir: (app, value: string) => {
@@ -32,7 +33,7 @@ const mount = (app: Application, program: commander.Command): void => {
     .action(async (key: string, value: string) => {
       const formattedKey = toSnakeCase(key);
       if (!specs[formattedKey]) {
-        updateConfigItem(formattedKey, value || '');
+        updateConfigItem(formattedKey, formatInputValue(value));
       } else {
         updateConfigItem(formattedKey, specs[formattedKey](app, value || ''));
       }
