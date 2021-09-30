@@ -156,7 +156,6 @@ const deployConfig = (app: Application, fileInfo: ConfigFileInfo, deployInfo: CF
           });
       }
     } catch (err) {
-      app.logger.error(`Failed to upload configuration file "${fileInfo.name}": `, err.response?.body?.message || err);
       return reject(err);
     }
     if (!res || !res.body) {
@@ -199,7 +198,8 @@ const startDeployConfig = async (app: Application, name: string | undefined): Pr
     try {
       await deployConfig(app, toDeploy, config.deploy || {});
     } catch (err) {
-      app.logger.error(`Failed to deploy configuration file "${name}".`, err);
+      app.logger.error(`Failed to deploy configuration files of "${name}".`, err);
+      return;
     }
   } else {
     try {
