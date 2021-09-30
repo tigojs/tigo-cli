@@ -100,8 +100,8 @@ const deployConfig = (app: Application, fileInfo: ConfigFileInfo, deployInfo: CF
     const agent = getAgent({
       host: deployInfo.host,
       port,
-      https: deployInfo.https,
-      base: deployInfo.base,
+      https: !!deployInfo.https,
+      base: deployInfo.base || '',
       ak,
       sk,
     });

@@ -27,14 +27,14 @@ const mount = (app: Application, program: commander.Command): void => {
     .command('config')
     .description('Operate the configuration file.');
   cmd
-    .command('set <key> <value>')
+    .command('set <key> [value]')
     .description('Set a configuration for CLI tool.')
     .action(async (key: string, value: string) => {
       const formattedKey = toSnakeCase(key);
       if (!specs[formattedKey]) {
-        updateConfigItem(formattedKey, value);
+        updateConfigItem(formattedKey, value || '');
       } else {
-        updateConfigItem(formattedKey, specs[formattedKey](app, value));
+        updateConfigItem(formattedKey, specs[formattedKey](app, value || ''));
       }
       app.logger.info('Configuration was set.');
     });
@@ -72,7 +72,11 @@ const mount = (app: Application, program: commander.Command): void => {
         return;
       }
       Object.keys(config).forEach((key) => {
-        app.logger.info(`${key}: ${config[key]}`);
+        let displayValue = config[key];
+        if (typeof displayValue === 'string') {
+          displayValue = `"${displayValue}"`;
+        }
+        app.logger.info(`${key}: ${displayValue}`);
       });
     });
 };
